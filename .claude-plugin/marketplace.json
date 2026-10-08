@@ -1,0 +1,17 @@
+{
+  "name": "vitrina",
+  "owner": {
+    "name": "Vitrina",
+    "url": "https://vitrinadev.com"
+  },
+  "description": "Vitrina's skills for working on AI agents, as an installable Claude Code plugin.",
+  "plugins": [
+    {
+      "name": "vitrina-skills",
+      "source": "./",
+      "description": "Diagnose and improve a Vitrina AI agent over MCP/REST; research a business and draft its agent package.",
+      "category": "productivity",
+      "keywords": ["vitrina", "ai-agents", "mcp", "whatsapp"]
+    }
+  ]
+}

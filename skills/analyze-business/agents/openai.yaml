@@ -1,0 +1,3 @@
+interface:
+  display_name: "Analyze business"
+  short_description: "Research a Vitrina workspace's conversations or interviews and draft its agent package"

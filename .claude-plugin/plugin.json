@@ -1,0 +1,17 @@
+{
+  "name": "vitrina-skills",
+  "version": "0.1.0",
+  "description": "Vitrina's agent skills — diagnose and improve a workspace's AI agent over MCP/REST, and research a business to draft its agent package.",
+  "author": {
+    "name": "Vitrina",
+    "url": "https://vitrinadev.com"
+  },
+  "homepage": "https://github.com/VitrinaDev/skills",
+  "repository": "https://github.com/VitrinaDev/skills",
+  "license": "MIT",
+  "keywords": ["vitrina", "ai-agents", "mcp", "crm", "whatsapp", "skills"],
+  "skills": [
+    "./skills/improve-vitrina-agent",
+    "./skills/analyze-business"
+  ]
+}

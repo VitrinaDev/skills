@@ -1,0 +1,3 @@
+interface:
+  display_name: "Improve Vitrina agent"
+  short_description: "Diagnose and fix a Vitrina AI agent: prompt, skills, KB, conversations"
