@@ -43,7 +43,7 @@ scripts/link-skills.sh ~/my-project/.claude/skills
 
 ## Connect your agent to Vitrina
 
-The skills work over Vitrina's MCP server with an API key from **Settings → API keys** (scopes `ai_agents:read, ai_agents:write, ai_agents:simulate, kb:read, kb:write, conversations:read, messages:read, tenant:read`):
+Both skills read and write through Vitrina's MCP server; nothing runs outside your workspace and no model key of your own is needed — the analysis is the coding agent's own reasoning. They work over Vitrina's MCP server with an API key from **Settings → API keys** (scopes `ai_agents:read, ai_agents:write, ai_agents:simulate, kb:read, kb:write, conversations:read, messages:read, tenant:read, contacts:read, tickets:read, analytics:read, corrections:read, corrections:write, worker_failures:read`):
 
 ```bash
 claude mcp add --transport http vitrina https://api.vitrinadev.com/mcp \
@@ -57,7 +57,7 @@ An OAuth connection (the one `/mcp` offers in the browser) is read-only and does
 All are **model-invoked**: the agent reaches for them when your request matches the description; you can also type the name.
 
 - **[improve-vitrina-agent](./skills/improve-vitrina-agent/SKILL.md)** — "The agent answered wrong in C-1234", "cambia lo que dice sobre precios", "why did the AI stay silent?". Reads the live config, inspects the conversation (messages, tool calls, reasoning, the exact assembled prompt), finds which layer is at fault — prompt, skill, KB, tool, or the harness itself — edits it through MCP/REST (draft → publish; skills and KB go live immediately) and verifies.
-- **[analyze-business](./skills/analyze-business/SKILL.md)** — "Build the agent for X", "haz el análisis de la clínica X". Researches a business from its imported conversation corpus (or, for a new number, from interviews) and drafts the agent package: instructions, skills, knowledge documents, setup checklist, billing estimate. The corpus export needs direct database access, so that phase is for Vitrina staff.
+- **[analyze-business](./skills/analyze-business/SKILL.md)** — "How is my agent doing?", "por qué respondió mal", "revisa las conversaciones de la semana". Audits the workspace's conversations, contacts, tool runs and the platform's own nightly reviews over MCP, classifies every wrong answer, silence, handoff or tool error by cause, and splits the result into fixes the workspace applies itself (via `improve-vitrina-agent`) and requests it files to Vitrina (change requests, capability escalations, platform defects with evidence).
 
 ## Contributing
 

@@ -9,7 +9,7 @@ Prod API: `https://api.vitrinadev.com` · MCP: `https://api.vitrinadev.com/mcp` 
 | **OAuth connector** (`claude mcp add … /mcp` then `/mcp` → authorise in the browser; Claude.ai custom connector) | `oauth:Claude` key, scopes = `mcp:connector` + read preset | **Read-only curated profile (~7–45 tools): no `ai_agents_*`, `skills_*`, `kb_files_*` at all**, and `call_operation` cannot reach agent routes because no write pack mints `ai_agents:write`/`kb:write`. Useless for agent work. |
 | **Scoped `sk_` API key** (Settings → API keys, minted by a member whose role holds the scopes; owners/admins do) | `POST /api-keys {name, scopes, expires_at?}` | Full hand-written catalogue filtered by scopes (518 tools with `*`). This is the path for editing agents. |
 
-Scopes to request for agent work: `ai_agents:read, ai_agents:write, ai_agents:simulate, kb:read, kb:write, conversations:read, messages:read, tenant:read` (+ `corrections:read, corrections:write` for change requests). Scopes are `resource:action`; a key can only carry scopes the minting member holds.
+Scopes to request for agent work: `ai_agents:read, ai_agents:write, ai_agents:simulate, kb:read, kb:write, conversations:read, messages:read, tenant:read, contacts:read, tickets:read, analytics:read, corrections:read, corrections:write, worker_failures:read` (the last six are what the `analyze-business` audit needs on top of editing). Scopes are `resource:action`; a key can only carry scopes the minting member holds.
 
 ### Claude Code
 

@@ -1,3 +1,3 @@
 interface:
   display_name: "Analyze business"
-  short_description: "Research a Vitrina workspace's conversations or interviews and draft its agent package"
+  short_description: "Audit a Vitrina agent's conversations, contacts and tool runs; decide what you fix vs. report to Vitrina"
