@@ -22,6 +22,12 @@ Eleven skills, one per question:
 | The clinic's agenda: free slots, occupancy, bookings, waitlist, no-shows, sync | `clinic-agenda` |
 | Connect your own system: operations, keys, webhooks, SDK | `vitrina-api-integrator` |
 
-Before any of them, check the connection once: call `ai_agents_list`. If the tool is missing or only a handful of `mcp__vitrina__*` tools exist, the session is on a read-only connector key (the one the «Conectar tu IA (MCP)» page issues); editing agents needs an API key from **Configuración → Claves de API** added with `claude mcp add --transport http vitrina https://api.vitrinadev.com/mcp --header "Authorization: Bearer sk_…"`. Reading ads needs `ads:read`, which only admin roles hold. The exact scope list is in `improve-vitrina-agent`'s connect reference.
+Before any of them, check the connection once:
+- **No Vitrina tools at all** → not connected. Connect Vitrina as a connector: in Claude chat, Customize → Connectors → add custom connector `https://api.vitrinadev.com/mcp`; in Claude Code, `claude mcp add --transport http vitrina https://api.vitrinadev.com/mcp` then `/mcp` → vitrina → Authenticate. Sign in and tick the packs the work needs (**«Agentes de IA»** to edit the agent).
+- **`ai_agents_get` and `call_operation` present** → a connector. Reading works. To edit the agent, `describe_operation {operation_id:"ai_agent_draft_replace"}` must answer with the operation; if it answers `Unknown operation`, the «Agentes de IA» pack is missing: the user disconnects the app in Vitrina (Configuración → Conectar tu IA → Desconectar) and connects again from Claude ticking «Agentes de IA».
+- **`ai_agents_save_draft` present** → an `sk_` API key (scripts, automation): full catalogue within its scopes.
+- **No `ai_agents_get`** → an old connection or a role without agent access; reconnect, or ask an owner or admin.
+
+Reading ads needs `ads:read`, which only admin roles hold. Details, the write packs and the `sk_` scopes: `improve-vitrina-agent`'s connect reference.
 
 Typical chains: `weekly-review` → `analyze-business` or `analyze-funnel` finds the leak → `improve-vitrina-agent` or `write-knowledge` fixes the agent's part → `test-vitrina-agent` keeps it fixed → `vitrina-ads` judges the ad's part.

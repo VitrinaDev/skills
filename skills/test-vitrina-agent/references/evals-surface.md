@@ -1,5 +1,7 @@
 # Agent Evals surface (ADR 0098)
 
+`sk_` key tools. A connector sees only `ai_agents_scenarios_list`, `ai_agents_scenario_runs_list`, `ai_agents_scenario_run_get`, `ai_agents_scenario_suites_list` and `ai_agents_publish_gate_get`; the scenario routes are `interna`, so `call_operation` cannot reach the rest.
+
 | Tool | Scope | Input |
 |---|---|---|
 | `ai_agents_scenarios_list` | read | `id` (agent), `status?` draft|active|archived, `family?`, `limit?` |
@@ -8,7 +10,7 @@
 | `ai_agents_scenario_create` | write | `id` + body `{name, family?, tags?, channel?, persona:{name?, register?, script:[{role: customer|agent, text}]}, world?:{engine: mock|preview, clock?, …seeded state}, checks:[…], hard_fails:[…]}` |
 | `ai_agents_scenario_update` | write | `id`, `scenario_id`, `patch` (same shape; persona/world/checks/channel changes bump the version) |
 | `ai_agents_scenario_delete`, `ai_agents_scenarios_import` (≤200 bodies) | write | |
-| `ai_agents_scenarios_run` | simulate | `id`, `scenario_ids?` (absent = every ACTIVE scenario), `agent_version` draft|live, `model?`, `repeats?` → `batch_id`, returns immediately |
+| `ai_agents_scenarios_run` | simulate | `id`, `scenario_ids?` (absent = every ACTIVE scenario), `agent_version` draft|live, `repeats?` → `batch_id`, returns immediately |
 | `ai_agents_scenario_runs_list` | read | `id`, `scenario_id?`, `batch_id?`, `status?`, `limit?` — status, score, hard-fail/check counts, timings, `draft_fingerprint` |
 | `ai_agents_scenario_run_get` | read | `id` (run) — transcript with tool calls, sandbox final state, every check with evidence, hard fails, score |
 | `ai_agents_scenario_runs_cancel` | simulate | `id`, `batch_id?` or `scenario_ids?` |

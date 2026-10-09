@@ -3,19 +3,28 @@
 //   VITRINA_MCP_URL=https://api.vitrinadev.com/mcp VITRINA_API_KEY=sk_… \
 //   node mcp-call.mjs ai_agents_get '{"id":"…"}'
 //   node mcp-call.mjs --list            # tool names visible to this key
+import { execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
-// Resolve the MCP SDK from (1) this script's own folder / NODE_PATH (`npm i -g @modelcontextprotocol/sdk`),
-// (2) a vitrina-app checkout named by VITRINA_APP_DIR (default ~/atribu/vitrina/vitrina-app).
+// Resolve the MCP SDK from a normal install, in order: next to this script or on NODE_PATH
+// (`npm i @modelcontextprotocol/sdk` here), then the global modules of the running node
+// (`npm i -g @modelcontextprotocol/sdk`, nvm included), then `npm root -g` (a custom npm prefix).
+function globalRoots() {
+  const prefix = dirname(dirname(process.execPath));
+  const roots = [join(prefix, 'lib', 'node_modules'), join(dirname(process.execPath), 'node_modules')];
+  try {
+    roots.push(execSync('npm root -g', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim());
+  } catch { /* npm not on PATH */ }
+  return roots;
+}
 function resolveSdk(sub) {
-  const candidates = [
-    () => createRequire(import.meta.url).resolve(`@modelcontextprotocol/sdk/${sub}`),
-    () => createRequire(join(process.env.VITRINA_APP_DIR ?? join(homedir(), 'atribu/vitrina/vitrina-app'), 'package.json')).resolve(`@modelcontextprotocol/sdk/${sub}`),
-  ];
-  for (const c of candidates) { try { return c(); } catch { /* next */ } }
-  console.error('@modelcontextprotocol/sdk not found: `npm i -g @modelcontextprotocol/sdk` or set VITRINA_APP_DIR');
+  const spec = `@modelcontextprotocol/sdk/${sub}`;
+  try { return createRequire(import.meta.url).resolve(spec); } catch { /* next */ }
+  for (const root of globalRoots()) {
+    try { return createRequire(join(root, 'noop.js')).resolve(spec); } catch { /* next */ }
+  }
+  console.error('@modelcontextprotocol/sdk not found: run `npm i -g @modelcontextprotocol/sdk` once, then retry');
   process.exit(2);
 }
 const { Client } = await import(resolveSdk('client/index.js'));
