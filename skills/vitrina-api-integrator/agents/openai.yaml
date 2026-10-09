@@ -1,0 +1,3 @@
+interface:
+  display_name: "Vitrina API integrator"
+  short_description: "Find and call any published operation, keys and scopes, webhooks, idempotency, rate limits"

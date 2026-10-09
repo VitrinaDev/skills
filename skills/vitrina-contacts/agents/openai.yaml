@@ -1,0 +1,3 @@
+interface:
+  display_name: "Vitrina contacts"
+  short_description: "Search, dedupe and merge, import with a dry run, consent, RUT, tags and attributes"

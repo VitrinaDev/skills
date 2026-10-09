@@ -1,6 +1,6 @@
 {
   "name": "vitrina-skills",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Vitrina's agent skills — fix and improve a workspace's AI agent, audit its conversations, analyze the funnel, and read Vitrina Ads, all over Vitrina's MCP/REST.",
   "author": {
     "name": "Vitrina",
@@ -25,6 +25,10 @@
     "./skills/analyze-business",
     "./skills/analyze-funnel",
     "./skills/vitrina-ads",
-    "./skills/weekly-review"
+    "./skills/weekly-review",
+    "./skills/vitrina-contacts",
+    "./skills/vitrina-campaigns",
+    "./skills/clinic-agenda",
+    "./skills/vitrina-api-integrator"
   ]
 }

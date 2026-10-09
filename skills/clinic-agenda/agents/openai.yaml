@@ -1,0 +1,3 @@
+interface:
+  display_name: "Clinic agenda"
+  short_description: "Professionals, free slots, occupancy, bookings, waitlist, no-shows, vendor sync"
