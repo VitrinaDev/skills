@@ -9,7 +9,7 @@ All tools below need an `sk_` API key (not an OAuth connector). Ids accept UUIDs
 | Agents | `ai_agents_list`, `ai_agents_get {id}` | live + draft config, `behavior_policies`, model |
 | Health numbers | `ai_agents_metrics_get {id, days≤90}`, `insights_ai_agents_get`, `insights_conversations_get`, `insights_csat_get`, `insights_sla_get` (`from`/`to` or window args) | |
 | Cost / latency | `analytics_cost {from, to?}`, `analytics_latency {kind?, since_minutes≤10080}` | kind `agent_turn` |
-| Platform reviews | `coach_reviews_list {ai_agent_id, limit≤200, with_handoff?}` — outcome `resolved_by_ai | resolved_by_human | unresolved | abandoned | noise`, summary, handoff | |
+| Platform reviews | `coach_reviews_list {ai_agent_id, limit≤200 — use 50, 200 is ~200k chars, with_handoff?}` — outcome `resolved_by_ai | resolved_by_human | unresolved | abandoned | noise`, summary, handoff | |
 | Findings | `coach_findings_list {ai_agent_id, status? active|open|investigating|investigated|addressed|dismissed|all}`, `coach_finding_get {ai_agent_id, finding_id}` (evidence + proposals), `coach_finding_investigate` (queues the investigator, needs `ai_agents:simulate`) | |
 | Proposals | `coach_proposals_list {ai_agent_id?, status? proposed|accepted|rejected}`, `coach_proposal_decide {proposal_id, decision}` (applies to the draft) | |
 | Requests already filed | `ai_agents_change_requests_list {id, status?, conversation_id?}`, `coach_feature_requests_list`, `coach_stats` | |

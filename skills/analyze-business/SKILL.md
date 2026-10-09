@@ -11,6 +11,8 @@ Read on demand:
 - [`references/playbook.md`](references/playbook.md) — the tools to call with their inputs, the symptom → cause → owner table, and the filing tools. **Read before Step 2.**
 - No MCP tools loaded? Run `improve-vitrina-agent`'s connect reference: an `sk_` API key with the scopes listed there (this skill also needs `corrections:read`, `corrections:write`, `analytics:read`, `contacts:read`, `tickets:read`, `worker_failures:read`).
 
+Budget: an audit reads summaries first and threads second. Default sample is **10–15 conversations** read in full (every handoff nobody answered, the reviews' worst outcomes, a few resolved ones); say how many you read and offer to go deeper. Keep list calls small — `coach_reviews_list limit:50`, `coach_findings_list status:"active"`, `coach_proposals_list limit:30` — and do not fetch the agent's prompt (`ai_agents_get`) unless a finding needs a specific rule checked. A full-tenant read of 40+ threads costs ten times a normal audit.
+
 ## Step 1 — Frame the audit
 
 Agree the agent (`ai_agents_list`), the window (default the last 7 days; 30 for a monthly review), the channels, and the question behind the request ("why do people ask for a human", "are prices right", "is it slow"). Pull the numbers first: `ai_agents_metrics_get {id, days}`, `insights_ai_agents_get`, `insights_csat_get`, `coach_stats`, `analytics_latency`, `analytics_cost`.

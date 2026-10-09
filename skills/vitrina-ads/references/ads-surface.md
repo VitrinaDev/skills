@@ -37,7 +37,7 @@ All under `/api/v1`, tag Ads, tier beta, scope `ads:read` (writes `ads:write`). 
 | `ads_meta_send_list`, `ads_meta_send_comparison_list` | when sending started; equal windows before/after: booking rate, spend, citas, first-time payers |
 | `ads_briefing_list {screen, from, to | window, wait=1}` | `lead` sentence, `lines[]`, `facts[]`, `source` |
 | `ads_experiments_list`, `ads_experiments_current_list`, `ads_experiments_readout_get {id}` | A/B arms (control/test, `optimization_event`), readout = cost per paying patient / per accepted quote per arm |
-| `ads_actions_list {screen: resumen|campanas|atribuidos|creativos|salud|envio}` → `ads_actions_preview`/`_execute`/`_dismiss`, `ads_actions_executions_list`, `_rollback` | the only sanctioned way to change something (budget, pause, send setup); `ads:write` |
+| `ads_actions_list {screen: resumen|campanas|atribuidos|creativos|salud|envio, from, to}` (from/to required) → `ads_actions_preview`/`_execute`/`_dismiss`, `ads_actions_executions_list`, `_rollback` | the only sanctioned way to change something (budget, pause, send setup); `ads:write` |
 | `ads_goal_*` | the monthly goal |
 | Integrations: `GET /integrations/meta-ads` (+ `/ads`, `/pages`) | the Meta connection (`integrations:read` or `ads:read`) |
 

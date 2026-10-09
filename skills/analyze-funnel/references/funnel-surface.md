@@ -27,14 +27,14 @@ Window args: `window` required (24h|7d|30d|90d|calendar_month|calendar_year|cust
 
 - `pipelines_list {include:"counts"}` (`card_count`), `stages_list {pipeline_id}` (`pipelines:read`).
 - `leads_kanban {pipeline_id?}` — without id: boards and stages; with id: the whole board (≤200 leads per stage, large). `lead_conversations_list {lead_id}`, `lead_interests_list {lead_id}`.
-- `call_operation leads_list` filters: `pipeline_id, stage_id, status, source, intent, owner_user_id, team_id, contact_id, min/max_value, temperature, last_activity_after` (the only date filter), `q`, `sort` (`created_desc`, `source_asc`, `stage_asc`), `page`, `page_size≤200`.
-- All-time analytics (`pipeline_id` only): `leads_summary_list`, `leads_stats_list` (score bands), `leads_funnel_list` (open count, value, median "hours" = now − last activity), `leads_win_rate_get {owner_user_id|team_id|source}`.
+- `call_operation leads_list` filters: `pipeline_id, stage_id, status, source, intent, owner_user_id, team_id, contact_id, min/max_value, temperature, last_activity_after` (the only date filter), `q`, `sort` (`created_desc`, `source_asc`, `stage_asc`), `page`, `page_size≤200`. **Each lead row is ~2.5k chars with embeds: use `page_size` 20–25 and never page a whole stage** — counts come from `leads_summary_list` / `leads_funnel_list` / `insights_leads_get`.
+- All-time analytics (`pipeline_id` only): `leads_summary_list`, `leads_stats_list` (score bands), `leads_funnel_list` (open count, value, median "hours" = now − last activity), `leads_win_rate_get {dimension: source|owner_user_id|team_id, pipeline_id}` (`dimension` is a path param).
 - Per lead: `lead_activity_list {id}` — kinds created, stage_changed, won, lost (the only stage history read; the `stage_transition_log` table has no endpoint).
 - Links: `lead.origin_conversation_id`, `lead_conversation` (`is_primary`); reverse: `conversations_linked_records {id}`.
 
 ## Conversations and contacts
 
-- MCP `conversations_list {page, limit≤100, channel, status, search}` — **no** source/date/ad filters. REST via `call_operation conversations_list {source, fromAd, aiReplied, fromDate, toDate, pipelineId, currentStageId, handler, unassigned, sort, page, limit}` has them; rows carry `ad_origin`.
+- MCP `conversations_list {page, limit≤100, channel, status, search}` — **no** source/date/ad filters. REST via `call_operation conversations_list {source, fromAd, aiReplied, fromDate, toDate, pipelineId, currentStageId, handler, unassigned, sort: created_at|updated_at|last_message_date, order: asc|desc, page, limit}` has them; rows carry `ad_origin`. (`sort` takes a column name, not `created_desc`.)
 - `conversations_export {id, format:"json"}` for one thread; `conversations_linked_records {id}`.
 - `contacts_stats {}` (all-time: total, by_lifecycle, by_channel, by_lead_source, reachability, duplicate_candidates), `contacts_search {q, lifecycle_stage, channel, lead_source, tag_id, limit≤100, offset}`.
 
@@ -43,6 +43,8 @@ Window args: `window` required (24h|7d|30d|90d|calendar_month|calendar_year|cust
 `appointments_list {status[], kind[] test_drive|external|block|clinic, from, to, vehicle_id, owner_user_id, limit≤100}` — returns rows only, no cursor: use it to sample, not to count thousands. REST `appointments_list` via `call_operation` adds `lead_id, contact_id, appointment_type_id` and a cursor. Clinics: `clinic_agenda_list`, `clinic_services_list` (entry services flag which bookings count as first visits).
 
 ## Ads join
+
+`ads_overview_get`, `ads_performance_list`, `ads_funnel_get`, `ads_monthly_return_get` are **MCP tools**, not `call_operation` ids (there the ids are `ads_overview_list`, `ads_campaigns_list`, `ads_scorecard_list`, …).
 
 With the add-on: `ads_overview_get`, `ads_performance_list {by}`, `ads_funnel_get`, `call_operation ads_stages_list` (writing→booked→attended→paid with reference band and `weakest`), `ads_report_list` (`tail` = non-ad conversations). See the `vitrina-ads` skill for meanings.
 
