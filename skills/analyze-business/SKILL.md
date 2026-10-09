@@ -9,7 +9,7 @@ Breadth first: this skill audits many conversations to find patterns and assigns
 
 Read on demand:
 - [`references/playbook.md`](references/playbook.md) — the tools to call with their inputs, the symptom → cause → owner table, and the filing tools. **Read before Step 2.**
-- No MCP tools loaded? Run `improve-vitrina-agent`'s connect reference: an `sk_` API key with the scopes listed there (this skill also needs `corrections:read`, `corrections:write`, `analytics:read`, `contacts:read`, `tickets:read`, `worker_failures:read`).
+- No Vitrina tools loaded, or unsure which credential this is? Run `improve-vitrina-agent`'s connect reference. A connector (Claude chat, or Claude Code signed in through Vitrina) covers most of the audit; filing a change request needs its «Agentes de IA» pack. An `sk_` key with the scopes listed there adds cost, latency and worker-failure reads.
 
 Budget: an audit reads summaries first and threads second. Default sample is **10–15 conversations** read in full (every handoff nobody answered, the reviews' worst outcomes, a few resolved ones); say how many you read and offer to go deeper. Keep list calls small — `coach_reviews_list limit:50`, `coach_findings_list status:"active"`, `coach_proposals_list limit:30` — and do not fetch the agent's prompt (`ai_agents_get`) unless a finding needs a specific rule checked. A full-tenant read of 40+ threads costs ten times a normal audit.
 
@@ -54,7 +54,7 @@ Done when: contact-related causes are either in the workspace list (clean-up tas
 
 Write `analysis/AUDIT-<agent>-<date>.md`: numbers (Step 1), findings table (conversation, symptom, evidence, cause, owner), **workspace fixes** ranked by frequency × damage, **requests to Vitrina**, and open questions for the business owner. Then file:
 
-- Workspace fixes → run `improve-vitrina-agent` per fix (draft → publish for prompts; skills and KB are live immediately).
+- Workspace fixes → run `improve-vitrina-agent` per fix (prompt changes go to the draft and are published only on the user's yes; skill and KB changes are confirmed before writing).
 - Behaviour the business requires and cannot configure → `ai_agents_change_request_create {id, verbatim, conversation_refs}` in the client's own words, up to 20 conversation refs; a request Vitrina resolves as a platform change ends in status `harness`.
 - Capability the catalogue lacks (tool, integration, channel, report) → `coach_escalate_to_vitrina {capability_key, title, description, category}` — emails Vitrina once per capability.
 - Evidence to preserve → `coach_correction_capture {conversation_id, title}`; handoff verdicts → `coach_handoff_feedback_submit {conversation_id, verdict}`.

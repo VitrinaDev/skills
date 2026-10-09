@@ -1,6 +1,6 @@
 # Contacts surface
 
-Hand-written MCP tools (plain `sk_` key) — id field names vary: `contacts_get {id}`, `contacts_merge {primary_id, secondary_ids[1..50]}`, most others `{contact_id}`.
+Hand-written MCP tools (`sk_` key). A connector sees `contacts_search`, `contacts_get` and `contacts_stats` by name and reaches the rest as published operations through `call_operation` (writes need its «Contactos» pack; `search_operations {query:"contacts"}` lists them). Id field names vary: `contacts_get {id}`, `contacts_merge {primary_id, secondary_ids[1..50]}`, most others `{contact_id}`.
 
 | Tool | Inputs | Scope |
 |---|---|---|

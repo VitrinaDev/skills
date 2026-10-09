@@ -5,7 +5,9 @@ description: "Test a Vitrina AI agent with scenarios (Agent Evals): turn a real 
 
 # Test the agent with scenarios
 
-A **scenario** is a customer persona with a script, a seeded mock world (agenda, catalogue, clock) and checks (hard fails + scored checks); a **run** executes the agent against it and records transcript, tool calls, check evidence and a judge score. A **suite** is a named set with a policy; the **golden** suite gates `POST /publish` (REST; the MCP `ai_agents_publish` skips the gate). Runs are queued and take ~1–3 minutes each. Scopes: `ai_agents:read/write/simulate`. Tool inputs are in [`references/evals-surface.md`](references/evals-surface.md).
+A **scenario** is a customer persona with a script, a seeded mock world (agenda, catalogue, clock) and checks (hard fails + scored checks); a **run** executes the agent against it and records transcript, tool calls, check evidence and a judge score. A **suite** is a named set with a policy; the **golden** suite gates the REST publish (`POST /ai-agents/{id}/publish`, connector `call_operation ai_agent_publish_create`; the `sk_` tool `ai_agents_publish` skips the gate). Runs are queued and take ~1–3 minutes each. Scopes: `ai_agents:read/write/simulate`. Tool inputs are in [`references/evals-surface.md`](references/evals-surface.md).
+
+**Which credential** (see `improve-vitrina-agent`'s `connect.md`): building, saving and running scenarios needs an `sk_` API key with `ai_agents:simulate` — runs bill model calls, so no connector pack grants it. On a connector (Claude chat, or Claude Code signed in through Vitrina) this skill reads only: `ai_agents_scenarios_list`, `ai_agents_scenario_runs_list`, `ai_agents_scenario_run_get`, `ai_agents_scenario_suites_list`, `ai_agents_publish_gate_get`. There, do Step 3 on existing runs and the gate, write the scenario you would add (persona script, checks) for the user to create in Vitrina's agent page, and say which steps need an `sk_` key.
 
 ## Step 1 — Start from evidence
 

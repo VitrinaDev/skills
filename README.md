@@ -1,12 +1,21 @@
 # Vitrina skills
 
-Agent skills for working on [Vitrina](https://vitrinadev.com) AI agents — the WhatsApp/Instagram/email/voice agents a workspace runs on the platform. They teach a coding agent (Claude Code, Codex, Cursor, …) how an agent is assembled, how to read the conversations where it misbehaved, and how to change its prompt, skills and knowledge base safely through Vitrina's MCP server and REST API.
+Agent skills for working on [Vitrina](https://vitrinadev.com) AI agents — the WhatsApp/Instagram/email/voice agents a workspace runs on the platform. They teach Claude (chat or Claude Code), Codex, Cursor and other agents how an agent is assembled, how to read the conversations where it misbehaved, and how to change its prompt, skills and knowledge base safely through Vitrina's MCP connector: every prompt change is saved to the draft and published only after you approve the diff.
 
 Small, composable, editable. Fork them, adapt them to your workspace.
 
 ## Installation
 
-Two routes. The **Claude Code plugin** is a managed bundle that updates when we ship. **skills.sh** copies editable files into your project. Pick one.
+Two steps: install the skills, then connect Vitrina (next section).
+
+<details open>
+<summary><strong>Claude chat (claude.ai, Claude Desktop)</strong></summary>
+
+On a paid plan: **Customize → Plugins → Add marketplace** → `VitrinaDev/skills`, then install **vitrina-skills** ([how plugins work in Claude](https://support.claude.com/en/articles/13837440)). Team and Enterprise owners can publish the plugin to the whole organization.
+
+If the marketplace is not accepted there, upload the skills one by one: download a skill folder from this repository as a `.zip` (one folder under `skills/`, e.g. `improve-vitrina-agent`), then **Customize → Skills → Upload a skill**. Skills need **Settings → Capabilities → Code execution** turned on.
+
+</details>
 
 <details>
 <summary><strong>Claude Code</strong></summary>
@@ -15,6 +24,8 @@ Two routes. The **Claude Code plugin** is a managed bundle that updates when we 
 /plugin marketplace add VitrinaDev/skills
 /plugin install vitrina-skills@vitrina
 ```
+
+From a shell: `claude plugin marketplace add VitrinaDev/skills` and `claude plugin install vitrina-skills@vitrina`.
 
 Then turn on updates for this marketplace: `/plugin` → Marketplaces → `vitrina` → **Enable auto-update** (off by default for marketplaces outside Anthropic's official one). New versions then install within minutes of a session starting; without it, `/plugin` → Installed → Update now.
 
@@ -45,21 +56,22 @@ scripts/link-skills.sh ~/my-project/.claude/skills
 
 ## Connect your agent to Vitrina
 
-Both skills read and write through Vitrina's MCP server; nothing runs outside your workspace and no model key of your own is needed — the analysis is the coding agent's own reasoning. Vitrina's **Configuración → Conectar tu IA (MCP)** page connects Claude, Claude Code or Cursor in three steps, and, with the «Agentes de IA» pack ticked at consent, that connection can read and edit the agent, skills and knowledge base (app v12.5+). Evals, the simulator and the full tool catalogue still need an API key from **Configuración → Claves de API** (scopes `ai_agents:read, ai_agents:write, ai_agents:simulate, kb:read, kb:write, conversations:read, messages:read, tenant:read, contacts:read, tickets:read, analytics:read, corrections:read, corrections:write, worker_failures:read, appointment_types:read, clinic:read, pipelines:read, teams:read, routing:read, leads:read, appointments:read, ads:read, healthatom:read, campaigns:read, followups:read, webhooks:read`):
+The skills read and write through Vitrina's MCP server (`https://api.vitrinadev.com/mcp`). Nothing runs outside your workspace and no model key of your own is needed — the analysis is your agent's own reasoning. Vitrina's **Configuración → Conectar tu IA (MCP)** page walks you through it; you sign in to Vitrina, and on the consent screen you tick what the connection may change. **Tick «Agentes de IA»** to let the skills edit your agent (draft, publish, skills, knowledge links, change requests).
 
-```bash
-claude mcp add --transport http vitrina https://api.vitrinadev.com/mcp \
-  --header "Authorization: Bearer sk_…"
-```
+- **Claude chat:** claude.ai → Customize → Connectors → add custom connector → `https://api.vitrinadev.com/mcp` → sign in → tick «Agentes de IA».
+- **Claude Code:** `claude mcp add --transport http vitrina https://api.vitrinadev.com/mcp`, then `/mcp` → `vitrina` → Authenticate → sign in → tick «Agentes de IA».
+- **Cursor and others:** add the same URL as a remote MCP server and sign in.
 
-Details, the difference between the two kinds of key, and the REST fallbacks: [`skills/improve-vitrina-agent/references/connect.md`](./skills/improve-vitrina-agent/references/connect.md).
+Connected before «Agentes de IA» existed, or without ticking it? In Vitrina, **Configuración → Conectar tu IA → Desconectar** that app, then connect again and tick it.
+
+What a connection cannot do: simulate the agent or run test scenarios (they spend model budget — try changes in the agent's «Probar» tab in Vitrina), or upload knowledge-base files (the skill writes the file; you upload it in Vitrina). For scripts and automation, an API key from **Configuración → Claves de API** (`--header "Authorization: Bearer sk_…"`) reaches the full catalogue within its scopes. Details: [`skills/improve-vitrina-agent/references/connect.md`](./skills/improve-vitrina-agent/references/connect.md).
 
 ## The skills
 
-Run `/vitrina` when unsure which one fits. The other four are **model-invoked**: the agent reaches for them when your request matches; you can also type the name.
+Run `/vitrina` when unsure which one fits. The others are **model-invoked**: the agent reaches for them when your request matches; you can also type the name.
 
-- **[improve-vitrina-agent](./skills/improve-vitrina-agent/SKILL.md)** — "The agent answered wrong in C-1234", "cambia lo que dice sobre precios", "why did the AI stay silent?". Reads the live config, inspects the conversation (messages, tool calls, reasoning, the exact assembled prompt), finds which layer is at fault — prompt, skill, KB, tool, or the harness itself — edits it through MCP/REST (draft → publish; skills and KB go live immediately) and verifies.
-- **[write-knowledge](./skills/write-knowledge/SKILL.md)** — "Agrega a la base de conocimiento cómo llegar", "actualiza el precio de la limpieza", "que sepa que ya no hacemos blanqueamiento". Writes the document or skill in the shape retrieval needs (one question per section, the customer's words, dates on prices), replaces in place, confirms ingestion and proves the answer with a scenario run.
+- **[improve-vitrina-agent](./skills/improve-vitrina-agent/SKILL.md)** — "The agent answered wrong in C-1234", "cambia lo que dice sobre precios", "why did the AI stay silent?". Reads the live config, inspects the conversation (messages, tool calls, reasoning), finds which layer is at fault — prompt, skill, KB, tool, or the harness itself — saves the fix to the draft, shows you the diff and publishes only on your yes (skill and KB changes, live on write, are confirmed first), and verifies.
+- **[write-knowledge](./skills/write-knowledge/SKILL.md)** — "Agrega a la base de conocimiento cómo llegar", "actualiza el precio de la limpieza", "que sepa que ya no hacemos blanqueamiento". Writes the document or skill in the shape retrieval needs (one question per section, the customer's words, dates on prices), shows it to you before it goes live, confirms ingestion and proves the answer with a scenario run or the test bench.
 - **[test-vitrina-agent](./skills/test-vitrina-agent/SKILL.md)** — "Que no vuelva a pasar lo de C-1234", "corre las pruebas antes de publicar". Builds a scenario from the conversation, runs it against the draft or the live agent, reads the transcript, and keeps it in the golden suite that gates publishing.
 - **[analyze-business](./skills/analyze-business/SKILL.md)** — "How is my agent doing?", "por qué respondió mal", "revisa las conversaciones de la semana". Audits the workspace's conversations, contacts, tool runs and the platform's own nightly reviews over MCP, classifies every wrong answer, silence, handoff or tool error by cause, and splits the result into fixes the workspace applies itself (via `improve-vitrina-agent`) and requests it files to Vitrina.
 - **[analyze-funnel](./skills/analyze-funnel/SKILL.md)** — "¿De dónde vienen mis pacientes?", "where do leads drop?", "cuántas conversaciones terminan en cita". Sources, channels and ads → conversations → leads and stages → bookings → won, with conversions per step, the weakest step with example conversations, and who owns each fix.

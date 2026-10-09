@@ -1,12 +1,12 @@
 # Audit playbook — tools, classification, filing
 
-All tools below need an `sk_` API key (not an OAuth connector). Ids accept UUIDs; conversation ids also accept `C-1234`.
+Ids accept UUIDs; conversation ids also accept `C-1234`. Tool names are the `sk_` catalogue. On a connector: the agent, coach, change-request, insights, contacts, leads and `conversations_list` reads are named tools too; a thread is `call_operation conversation_messages_list {params:{id, order:"asc"}}` (or `conversation_export_list {params:{id, format:"json"}}`), silence is `conversation_ai_status_list {params:{id}}`; `analytics_cost`, `analytics_latency`, `coach_stats`, `worker_failures_list`, `tickets_messages_thread`, agent-turn and agent-runs need an `sk_` key — say which rows of the audit you could not read.
 
 ## Reading tools
 
 | Need | Tool / route | Inputs |
 |---|---|---|
-| Agents | `ai_agents_list`, `ai_agents_get {id}` | live + draft config, `behavior_policies`, model |
+| Agents | `ai_agents_list`, `ai_agents_get {id}` | live + draft config, `behavior_policies` |
 | Health numbers | `ai_agents_metrics_get {id, days≤90}`, `insights_ai_agents_get`, `insights_conversations_get`, `insights_csat_get`, `insights_sla_get` (`from`/`to` or window args) | |
 | Cost / latency | `analytics_cost {from, to?}`, `analytics_latency {kind?, since_minutes≤10080}` | kind `agent_turn` |
 | Platform reviews | `coach_reviews_list {ai_agent_id, limit≤200 — use 50, 200 is ~200k chars, with_handoff?}` — outcome `resolved_by_ai | resolved_by_human | unresolved | abandoned | noise`, summary, handoff | |
@@ -48,12 +48,12 @@ Rule of thumb: if a prompt, skill, KB document, tool attachment or setting can c
 
 | Purpose | Tool | Inputs |
 |---|---|---|
-| Request a behaviour change the business requires | `ai_agents_change_request_create` | `id` (agent), `verbatim` (≤5000 chars, the client's own words), `reporter_kind: member | client_via_member`, `conversation_refs[{conversationId, messageId?}]` ≤20 |
+| Request a behaviour change the business requires | `ai_agents_change_request_create` (connector: `call_operation ai_agent_change_requests_create {params:{id}, body:{…}}`, «Agentes de IA» pack) | `id` (agent), `verbatim` (≤5000 chars, the client's own words), `reporter_kind: member | client_via_member`, `conversation_refs[{conversationId, messageId?}]` ≤20 |
 | Follow it | `ai_agents_change_request_get`, `_transition`, `_scenario`, `_scenario_evaluate`, `_propose` — statuses `received → grounded → reproduced → proposed → applied → verified`, or `ya_cumple` (already behaves), `harness` (platform change) |
 | Missing capability | `coach_escalate_to_vitrina` | `capability_key`, `title`, `description?`, `category? integration|tool|channel|reporting|automation|other`, `reason?`, `ai_agent_id?` |
 | Freeze evidence | `coach_correction_capture {conversation_id, title?}`, `coach_annotation_add` |
 | Handoff verdict | `coach_handoff_feedback_submit {conversation_id, verdict: missing_knowledge|missing_capability|wrong_behavior|correct_handoff|skipped, note?}` |
-| Apply a platform proposal | `coach_proposal_decide {proposal_id, decision}` (lands in the agent draft; publish afterwards) |
+| Apply a platform proposal | `coach_proposal_decide {proposal_id, decision}` (`sk_` key; lands in the agent draft — show the diff and publish only on the user's yes) |
 
 ## Report template
 

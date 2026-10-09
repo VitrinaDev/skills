@@ -20,10 +20,11 @@ Each revision pass (freshness, pending-question, price gate) appends another rea
 Fastest path for one conversation: `conversations_export {id, format:"json"}` — accepts the display id, returns contact, ticket, attributes and every message row (10k chars for a short thread). `tickets_messages_thread` is keyed by **ticket** (`T-n`); a `C-n` there fails with `invalid input syntax for type uuid`.
 
 
-- MCP `tickets_messages_thread {ticket_id, limit≤2000}` (keeps `type`, `tool_calls`, `tool_call_id`), `conversations_export {id, format: json}` (use JSON — markdown labels reasoning rows as "assistant"), `conversations_list {status?, channel?, search?, limit≤100}`, `conversations_linked_records {id}`.
+- Connector: `call_operation conversation_messages_list {params:{id, order:"asc", limit≤200, cursor?}}` (tool fields intact), `conversation_export_list {params:{id, format:"json"}}`, `conversation_ai_status_list {params:{id}}`; named `conversations_list`, `conversations_linked_records`. The agent-turn and agent-runs routes below need an `sk_` key.
+- MCP (`sk_` key) `tickets_messages_thread {ticket_id, limit≤2000}` (keeps `type`, `tool_calls`, `tool_call_id`), `conversations_export {id, format: json}` (use JSON — markdown labels reasoning rows as "assistant"), `conversations_list {status?, channel?, search?, limit≤100}`, `conversations_linked_records {id}`.
 - REST `GET /conversations/:id/messages?limit≤200&order=asc` (tool fields intact, plus `author`), `GET /conversations/:id/export?format=json`.
 - **`GET /conversations/:id/agent-turn`** (REST, `conversations:read`): the exact assembled `system_prompt`, replayed `messages`, `history_summary`, full `tools` definitions, `skills`, `knowledge_base`, `attributes`, `open_leads`, `previous_conversations`, `business_hours`, or `human_only` + `silence_reason` when the agent would not run. Reproduces the *current* config, not the one at the time of the turn.
-- `GET /conversations/:id/agent-runs?limit≤20` → `agent_run` (model, tokens, cost, status) with `agent_run_step` rows (`kb_lookup | tool_call | reply | ticket_change | lead_change | handoff | resolve | snooze | reasoning`).
+- `GET /conversations/:id/agent-runs?limit≤20` → `agent_run` (tokens, cost, status) with `agent_run_step` rows (`kb_lookup | tool_call | reply | ticket_change | lead_change | handoff | resolve | snooze | reasoning`).
 - `GET /conversations/:id/ai-status` → why the AI is silent (`explainAiSilence`); `POST /copilot/explain {conversation_id, message_id}` → "why did it reply this".
 - Conversation state: `handler` is `bot | human | external`; `assignee_user_id`, `ai_keep_with_human`, `awaiting_human_since`, `status` (`open|pending|snoozed|resolved|closed`), `summary` (close summary), `billable` + `billing_reason` (close analyzer), `conversation_attribute {key, value, source agent|tool|admin|system}`.
 
@@ -33,7 +34,7 @@ Fastest path for one conversation: `conversations_export {id, format:"json"}` �
 2. Compare the reply with the tool results — an amount, hour or name absent from every result and from the KB is a hallucination (the price gate should have blocked a bare amount; if it passed, the amount was "grounded" somewhere — find where).
 3. Count steps: ≥ 8 tool calls in one turn = step cap; the last pass is a no-tools synthesis.
 4. Check the prompt the turn saw (`agent-turn`): is the rule you expect actually in the prompt/skill content, or only in a KB doc the agent did not search?
-5. Check `latency_metric` (kind `agent_turn`, revision flags) and `model_usage` (`model`, `input_tokens`, `output_tokens`, `cost_usd`, `latency_ms`, `metadata.steps`, `metadata.provider`) for the turn's cost/latency and whether a cheap provider swap or timeout explains a degraded reply.
+5. Check `latency_metric` (kind `agent_turn`, revision flags) and `model_usage` (`model`, `input_tokens`, `output_tokens`, `cost_usd`, `latency_ms`, `metadata.steps`, `metadata.provider`) for the turn's cost/latency and whether a provider swap or timeout explains a degraded reply (Vitrina staff, SQL only; model and provider are internal — a tenant-facing report says "a platform timeout", never which model).
 6. Mejoras: `conversation_review` (`outcome resolved_by_ai|resolved_by_human|unresolved|abandoned|noise`, `handoff`, `summary`) and `agent_finding` already classify recent conversations — read them before re-deriving.
 
 ## SQL recipes (direct database access, read-only)

@@ -1,29 +1,39 @@
-# Reaching a tenant: MCP, REST, SQL
+# Reaching a tenant: connector, API key, REST, SQL
 
-Prod API: `https://api.vitrinadev.com` · MCP: `https://api.vitrinadev.com/mcp` (Streamable HTTP, stateless, Bearer auth). Local stack: `http://localhost:8080` (same paths).
+Prod API: `https://api.vitrinadev.com` · MCP: `https://api.vitrinadev.com/mcp` (Streamable HTTP, stateless). Local stack: `http://localhost:8080` (same paths).
 
-## Which credential — this decides what you can do
+## Two credentials — the connector comes first
 
-Vitrina's own page **Configuración → Avanzado → Conectar tu IA (MCP)** gives the URL and three-step instructions for Claude, Claude Code and Cursor. Follow it for *reading* the workspace. Both routes on that page — the browser sign-in (OAuth) and «Clave manual (avanzado)» — mint the **connector preset**: `mcp:connector` + read scopes, and writes only for the areas ticked on the consent screen (contactos, leads, casos, conversaciones, agenda, catálogo, mensajes). Before app v12.5 that preset had no `ai_agents`, `kb` or `corrections` scopes and the connector saw no agent tool at all; now reads are in the profile and writes come with the «Agentes de IA» pack (`write:ai_agents` → `ai_agents:write`, `kb:write`, `corrections:write`). Over a connector, a write is `call_operation {operation_id:"ai_agent_draft_replace", params:{id}, body:{system_prompt:…}}`-style against the published routes (`search_operations {tag:"AI Agents"}` lists them); the hand-written `ai_agents_save_draft` / `skills_update` / `kb_files_replace` tools exist only on API keys. Full catalogue and evals still need the other kind of key:
-
-| Credential | Minted where | What `/mcp` offers |
+| Credential | How you get it | What `/mcp` offers |
 |---|---|---|
-| Connector key (OAuth or «Clave manual» on the MCP page) | Conectar tu IA (MCP) | Curated profile. Since app v12.5 it reads the agent too (`ai_agents_get`, `skills_*`, `kb_files_*`, reviews, findings, change requests, scenario results); with the **«Agentes de IA»** pack ticked on the consent screen it can also edit through `call_operation` (draft, publish, versions, skills, knowledge, change requests). It never mints `ai_agents:simulate`: evals and the simulator need an API key. |
-| **Scoped `sk_` API key** | **Configuración → Avanzado → Claves de API** (a member whose role holds the scopes; owners and admins do) | Full catalogue filtered by scopes (~500 tools). The path for editing and auditing agents. |
+| **Connector** (OAuth, the main path) | Vitrina → **Configuración → Conectar tu IA (MCP)**, or add the MCP URL in Claude / Claude Code / Cursor and sign in. The consent screen lists write packs; tick **«Agentes de IA»** to edit agents. | A curated read profile (agents, skills, KB, findings, change requests, scenario results, inbox, insights) plus `search_operations` / `describe_operation` / `call_operation`. Every write goes through `call_operation`, only in the packs ticked, only where the person's role already reaches. |
+| Scoped `sk_` API key (secondary) | **Configuración → Claves de API** (a member whose role holds the scopes) | The full catalogue filtered by scopes (~500 tools: `ai_agents_save_draft`, `skills_update`, `kb_files_replace`, `ai_agent_simulate`, …). For scripts and automation, and for what no pack grants: simulating and running scenarios (`ai_agents:simulate`), uploading or replacing KB files from a chat (multipart), audit reads outside the profile (`analytics_cost`, `worker_failures_list`, `conversations_export`). |
 
-Scopes to request: `ai_agents:read, ai_agents:write, ai_agents:simulate, kb:read, kb:write, conversations:read, messages:read, tenant:read, contacts:read, tickets:read, analytics:read, corrections:read, corrections:write, worker_failures:read, appointment_types:read, clinic:read, pipelines:read, teams:read, routing:read, leads:read, appointments:read, ads:read, healthatom:read, campaigns:read, followups:read, webhooks:read` (the audit needs the `corrections`, `analytics`, `contacts`, `tickets` and `worker_failures` ones; `appointment_types:read` / `clinic:read` let a clinic agent's service catalogue be checked). A key can only carry scopes the minting member holds.
+Write packs a connector can carry: «Contactos», «Leads», «Casos», «Conversaciones», **«Agentes de IA»** (`ai_agents:write` + `kb:write` + `corrections:write`: the draft, publish, versions, skills, knowledge links, change requests), «Agenda», «Catálogo», «Mensajes a clientes», plus the economics checkbox. The agent reads (`ai_agents:read`, `kb:read`, `corrections:read`) come with the connection for owners and admins. `ai_agents:simulate` is in no pack: a connector cannot simulate or start scenario runs; it reads their results.
 
-### Claude Code
+In Claude chat (claude.ai web and desktop) a custom connector is OAuth-only and takes no headers, so an `sk_` key cannot be used there. Use the connector.
 
-```bash
-claude mcp add --transport http vitrina https://api.vitrinadev.com/mcp \
-  --header "Authorization: Bearer sk_…"
-```
-Same command the in-app page shows for Claude Code, plus the `--header`; skip the `/mcp` → Authenticate step (that would swap in a connector key). Then the `mcp__vitrina__*` tools appear (`ai_agents_get`, `skills_update`, `kb_files_replace`, …). If `/mcp` lists only a handful of tools, the session is on a connector key: `claude mcp remove vitrina` and re-add with the header.
+## Which one is this session on?
 
-Size limits that bite: `skills_*` content ≤ 20,000 chars; `kb_files_*` content ≤ 34 MB; `ai_agents_save_draft.system_prompt` had a 40,000-char cap before app v11.98.1 (a 66k prompt failed with `-32602 String must contain at most 40000`). On an older server, use REST `PUT /ai-agents/:id/draft` (no cap).
+1. `ai_agents_save_draft` among the tools → `sk_` key. Use the MCP tool names in [`surface.md`](surface.md).
+2. `ai_agents_get` and `call_operation` present, `ai_agents_save_draft` absent → connector. Run `describe_operation {operation_id:"ai_agent_draft_replace"}`:
+   - it answers with the operation → «Agentes de IA» is granted; edit with the `call_operation` ids in [`surface.md`](surface.md).
+   - it answers `Unknown operation …` → the pack was not ticked, the connection predates it, or the person's role cannot edit agents (owners and admins can). Reads still work.
+3. No `ai_agents_get` at all (only a handful of Vitrina tools) → a connector minted before the agent reads existed, or a member whose role lacks `ai_agents:read`. Reconnect; if it persists, the role is the limit (owners and admins hold it).
+4. No Vitrina tools → not connected; connect below.
 
-### REST from a shell
+A write answering `403` with an insufficient-scope error means the person's role does not hold that scope; reconnecting will not help, an owner or admin must do it.
+
+**To add «Agentes de IA» to an existing connection:** in Vitrina, **Configuración → Conectar tu IA → Desconectar** on that app (or switch «Agentes de IA» on for that connection there, when available), then connect again from Claude and tick «Agentes de IA» on the consent screen. Tell the user exactly this; it takes a minute.
+
+## Connecting
+
+- **Claude chat (web/desktop):** claude.ai → Customize → Connectors (`claude.ai/customize/connectors`) → add custom connector → URL `https://api.vitrinadev.com/mcp` → sign in to Vitrina → tick «Agentes de IA» → allow.
+- **Claude Code:** `claude mcp add --transport http vitrina https://api.vitrinadev.com/mcp`, then `/mcp` → `vitrina` → Authenticate → sign in → tick «Agentes de IA».
+- **Cursor and other MCP clients:** add the same URL as a remote (HTTP) MCP server and sign in when prompted; Vitrina's «Conectar tu IA» page shows the exact steps per client.
+- **`sk_` key (scripts, automation):** `claude mcp add --transport http vitrina https://api.vitrinadev.com/mcp --header "Authorization: Bearer sk_…"` and skip the Authenticate step (it would swap in a connector). Scopes for full agent work: `ai_agents:read, ai_agents:write, ai_agents:simulate, kb:read, kb:write, conversations:read, messages:read, tenant:read, contacts:read, tickets:read, analytics:read, corrections:read, corrections:write, worker_failures:read, appointment_types:read, clinic:read, pipelines:read, teams:read, routing:read, leads:read, appointments:read, ads:read, healthatom:read, campaigns:read, followups:read, webhooks:read`. A key carries only scopes its minting member holds.
+
+## REST from a shell (`sk_` key)
 
 ```bash
 curl -s https://api.vitrinadev.com/api/v1/ai-agents/<id> -H "Authorization: Bearer $VITRINA_API_KEY"
@@ -32,11 +42,11 @@ curl -s -X PUT https://api.vitrinadev.com/api/v1/ai-agents/<id>/draft -H "Author
 curl -s -X PUT https://api.vitrinadev.com/api/v1/kb-files/<id>/content -H "Authorization: Bearer $VITRINA_API_KEY" \
   -F file=@doc.md
 ```
-Routes that only exist on REST (tier `interna`, unreachable via `call_operation`): `GET /conversations/:id/agent-turn`, `GET /conversations/:id/agent-runs`, `POST /ai-agents/:id/coach/run`, `PUT /ai-agents/:id/tools`.
+REST-only routes (tier `interna`, never reachable through `call_operation`): `GET /conversations/:id/agent-turn`, `GET /conversations/:id/agent-runs`, `POST /ai-agents/:id/coach/run`, the scenario and suite writes and runs.
 
 ### Scripted MCP calls without a configured server
 
-`scripts/mcp-call.mjs <tool> '<json-args>'` (env `VITRINA_MCP_URL`, `VITRINA_API_KEY`; resolves the MCP SDK from `VITRINA_APP_DIR`, default `~/atribu/vitrina/vitrina-app`). `scripts/mcp-call.mjs --list` prints the tool names the key can see — the fastest way to tell a connector key from a scoped key.
+`scripts/mcp-call.mjs <tool> '<json-args>'` with `VITRINA_API_KEY` (`VITRINA_MCP_URL` for a non-production host). It needs the MCP SDK installed once: `npm i -g @modelcontextprotocol/sdk` (the script finds the global install itself). `scripts/mcp-call.mjs --list` prints the tool names the key can see.
 
 ## Direct database access (Vitrina staff only)
 
