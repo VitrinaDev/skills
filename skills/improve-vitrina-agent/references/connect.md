@@ -11,7 +11,7 @@ Vitrina's own page **Configuración → Avanzado → Conectar tu IA (MCP)** give
 | Connector key (OAuth or «Clave manual» on the MCP page) | Conectar tu IA (MCP) | Curated read-only profile (~7–45 tools); no agent, skill or KB tools |
 | **Scoped `sk_` API key** | **Configuración → Avanzado → Claves de API** (a member whose role holds the scopes; owners and admins do) | Full catalogue filtered by scopes (~500 tools). The path for editing and auditing agents. |
 
-Scopes to request: `ai_agents:read, ai_agents:write, ai_agents:simulate, kb:read, kb:write, conversations:read, messages:read, tenant:read, contacts:read, tickets:read, analytics:read, corrections:read, corrections:write, worker_failures:read, appointment_types:read, clinic:read` (the audit needs the `corrections`, `analytics`, `contacts`, `tickets` and `worker_failures` ones; `appointment_types:read` / `clinic:read` let a clinic agent's service catalogue be checked). A key can only carry scopes the minting member holds.
+Scopes to request: `ai_agents:read, ai_agents:write, ai_agents:simulate, kb:read, kb:write, conversations:read, messages:read, tenant:read, contacts:read, tickets:read, analytics:read, corrections:read, corrections:write, worker_failures:read, appointment_types:read, clinic:read, pipelines:read, teams:read, routing:read` (the audit needs the `corrections`, `analytics`, `contacts`, `tickets` and `worker_failures` ones; `appointment_types:read` / `clinic:read` let a clinic agent's service catalogue be checked). A key can only carry scopes the minting member holds.
 
 ### Claude Code
 
