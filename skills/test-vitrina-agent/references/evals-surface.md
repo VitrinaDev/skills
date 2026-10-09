@@ -10,7 +10,7 @@
 | `ai_agents_scenario_delete`, `ai_agents_scenarios_import` (≤200 bodies) | write | |
 | `ai_agents_scenarios_run` | simulate | `id`, `scenario_ids?` (absent = every ACTIVE scenario), `agent_version` draft|live, `model?`, `repeats?` → `batch_id`, returns immediately |
 | `ai_agents_scenario_runs_list` | read | `id`, `scenario_id?`, `batch_id?`, `status?`, `limit?` — status, score, hard-fail/check counts, timings, `draft_fingerprint` |
-| `ai_agents_scenario_run_get` | read | `id` (run) — transcript with tool calls, sandbox final state, every check with evidence, hard fails, score |
+| `ai_agents_scenario_run_get` | read | `id` (agent), `run_id`, `detail?: summary|full` (default summary since app v12.5: one entry per turn with text + tool names/args, checks with evidence, hard fails, score, `final_state_keys`; `full` adds reasoning, customer trace and the sandbox final state — 80–230k chars) |
 | `ai_agents_scenario_runs_cancel` | simulate | `id`, `batch_id?` or `scenario_ids?` |
 | `ai_agents_scenario_repair` | write | `id`, `scenario_id`, `run_id`, `note?` — the scenario builder rewrites the scenario from the run |
 | `ai_agents_scenario_suites_list` | read | `id`, `kind?`, `enabled?`, `limit?` |

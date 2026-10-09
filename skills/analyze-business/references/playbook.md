@@ -12,7 +12,7 @@ All tools below need an `sk_` API key (not an OAuth connector). Ids accept UUIDs
 | Platform reviews | `coach_reviews_list {ai_agent_id, limit≤200 — use 50, 200 is ~200k chars, with_handoff?}` — outcome `resolved_by_ai | resolved_by_human | unresolved | abandoned | noise`, summary, handoff | |
 | Findings | `coach_findings_list {ai_agent_id, status? active|open|investigating|investigated|addressed|dismissed|all}`, `coach_finding_get {ai_agent_id, finding_id}` (evidence + proposals), `coach_finding_investigate` (queues the investigator, needs `ai_agents:simulate`) | |
 | Proposals | `coach_proposals_list {ai_agent_id?, status? proposed|accepted|rejected}`, `coach_proposal_decide {proposal_id, decision}` (applies to the draft) | |
-| Requests already filed | `ai_agents_change_requests_list {id, status?, conversation_id?}`, `coach_feature_requests_list`, `coach_stats` | |
+| Requests already filed | `ai_agents_change_requests_list {id, status?, conversation_id?}` (`corrections:read` since app v12.5; `corrections:write` before), `coach_feature_requests_list`, `coach_stats` | |
 | Platform failures | `worker_failures_list {queue?, unreplayed?, limit≤200}` — final-failed jobs (`messageQueue` = an inbound that never got a turn) | |
 | Conversations | `conversations_list {page, limit≤100, channel?, status?, search?}`, `conversations_export {id, format:"json"}`, `conversations_linked_records {id}`, `conversations_calls` | |
 | Thread by ticket | `tickets_messages_thread {ticket_id, limit≤2000, before?}` | |
