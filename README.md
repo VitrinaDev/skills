@@ -16,6 +16,8 @@ Two routes. The **Claude Code plugin** is a managed bundle that updates when we 
 /plugin install vitrina-skills@vitrina
 ```
 
+Then turn on updates for this marketplace: `/plugin` → Marketplaces → `vitrina` → **Enable auto-update** (off by default for marketplaces outside Anthropic's official one). New versions then install within minutes of a session starting; without it, `/plugin` → Installed → Update now.
+
 </details>
 
 <details>
