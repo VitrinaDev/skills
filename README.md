@@ -43,7 +43,7 @@ scripts/link-skills.sh ~/my-project/.claude/skills
 
 ## Connect your agent to Vitrina
 
-Both skills read and write through Vitrina's MCP server; nothing runs outside your workspace and no model key of your own is needed — the analysis is the coding agent's own reasoning. Vitrina's **Configuración → Conectar tu IA (MCP)** page connects Claude, Claude Code or Cursor in three steps, but that connection is read-only and does not include the agent, skill or knowledge-base tools. For these skills use an API key from **Configuración → Claves de API** (scopes `ai_agents:read, ai_agents:write, ai_agents:simulate, kb:read, kb:write, conversations:read, messages:read, tenant:read, contacts:read, tickets:read, analytics:read, corrections:read, corrections:write, worker_failures:read, appointment_types:read, clinic:read, pipelines:read, teams:read, routing:read`):
+Both skills read and write through Vitrina's MCP server; nothing runs outside your workspace and no model key of your own is needed — the analysis is the coding agent's own reasoning. Vitrina's **Configuración → Conectar tu IA (MCP)** page connects Claude, Claude Code or Cursor in three steps, but that connection is read-only and does not include the agent, skill or knowledge-base tools. For these skills use an API key from **Configuración → Claves de API** (scopes `ai_agents:read, ai_agents:write, ai_agents:simulate, kb:read, kb:write, conversations:read, messages:read, tenant:read, contacts:read, tickets:read, analytics:read, corrections:read, corrections:write, worker_failures:read, appointment_types:read, clinic:read, pipelines:read, teams:read, routing:read, leads:read, appointments:read, ads:read`):
 
 ```bash
 claude mcp add --transport http vitrina https://api.vitrinadev.com/mcp \
@@ -54,10 +54,12 @@ Details, the difference between the two kinds of key, and the REST fallbacks: [`
 
 ## The skills
 
-All are **model-invoked**: the agent reaches for them when your request matches the description; you can also type the name.
+Run `/vitrina` when unsure which one fits. The other four are **model-invoked**: the agent reaches for them when your request matches; you can also type the name.
 
 - **[improve-vitrina-agent](./skills/improve-vitrina-agent/SKILL.md)** — "The agent answered wrong in C-1234", "cambia lo que dice sobre precios", "why did the AI stay silent?". Reads the live config, inspects the conversation (messages, tool calls, reasoning, the exact assembled prompt), finds which layer is at fault — prompt, skill, KB, tool, or the harness itself — edits it through MCP/REST (draft → publish; skills and KB go live immediately) and verifies.
-- **[analyze-business](./skills/analyze-business/SKILL.md)** — "How is my agent doing?", "por qué respondió mal", "revisa las conversaciones de la semana". Audits the workspace's conversations, contacts, tool runs and the platform's own nightly reviews over MCP, classifies every wrong answer, silence, handoff or tool error by cause, and splits the result into fixes the workspace applies itself (via `improve-vitrina-agent`) and requests it files to Vitrina (change requests, capability escalations, platform defects with evidence).
+- **[analyze-business](./skills/analyze-business/SKILL.md)** — "How is my agent doing?", "por qué respondió mal", "revisa las conversaciones de la semana". Audits the workspace's conversations, contacts, tool runs and the platform's own nightly reviews over MCP, classifies every wrong answer, silence, handoff or tool error by cause, and splits the result into fixes the workspace applies itself (via `improve-vitrina-agent`) and requests it files to Vitrina.
+- **[analyze-funnel](./skills/analyze-funnel/SKILL.md)** — "¿De dónde vienen mis pacientes?", "where do leads drop?", "cuántas conversaciones terminan en cita". Sources, channels and ads → conversations → leads and stages → bookings → won, with conversions per step, the weakest step with example conversations, and who owns each fix.
+- **[vitrina-ads](./skills/vitrina-ads/SKILL.md)** — "¿Qué anuncio me trae pacientes?", "cuánto me cuesta cada paciente nuevo", "prepárame el resumen del lunes". Reads Vitrina Ads (overview, campaigns, scorecard, stages, cohorts, return, measurement health, Envío a Meta) with the product's own vocabulary and evidence rules, and recommends what to scale, pause or fix.
 
 ## Contributing
 

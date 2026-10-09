@@ -1,0 +1,5 @@
+interface:
+  display_name: "Vitrina"
+  short_description: "Which Vitrina skill fits your question"
+policy:
+  allow_implicit_invocation: false

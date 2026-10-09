@@ -1,0 +1,3 @@
+interface:
+  display_name: "Analyze funnel"
+  short_description: "Sources → conversations → leads/stages → bookings → won: where the funnel leaks and who owns the fix"

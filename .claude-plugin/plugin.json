@@ -1,7 +1,7 @@
 {
   "name": "vitrina-skills",
-  "version": "0.2.4",
-  "description": "Vitrina's agent skills — audit a workspace's AI agent over MCP (conversations, contacts, tool runs) and decide what to fix vs. report, and diagnose + fix one agent problem end to end.",
+  "version": "0.3.0",
+  "description": "Vitrina's agent skills — fix and improve a workspace's AI agent, audit its conversations, analyze the funnel, and read Vitrina Ads, all over Vitrina's MCP/REST.",
   "author": {
     "name": "Vitrina",
     "url": "https://vitrinadev.com"
@@ -18,7 +18,10 @@
     "skills"
   ],
   "skills": [
+    "./skills/vitrina",
     "./skills/improve-vitrina-agent",
-    "./skills/analyze-business"
+    "./skills/analyze-business",
+    "./skills/analyze-funnel",
+    "./skills/vitrina-ads"
   ]
 }
