@@ -1,0 +1,3 @@
+interface:
+  display_name: "Test Vitrina agent"
+  short_description: "Scenarios, runs and golden suites that keep a fixed bug from coming back"

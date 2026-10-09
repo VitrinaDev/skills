@@ -1,0 +1,3 @@
+interface:
+  display_name: "Write knowledge"
+  short_description: "Teach a Vitrina agent: KB docs and skills written for retrieval, published and proven"

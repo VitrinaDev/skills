@@ -6,15 +6,18 @@ disable-model-invocation: true
 
 # Vitrina — which skill, and are you connected?
 
-Four skills, one per question:
+Seven skills, one per question:
 
 | You want to… | Run |
 |---|---|
 | Fix what the agent said or did in a conversation; change its prompt, a skill or a knowledge document | `improve-vitrina-agent` |
+| Teach the agent a fact, a price, a procedure (a KB document or a skill) | `write-knowledge` |
+| Make sure a fixed bug stays fixed; run the suite before publishing | `test-vitrina-agent` |
 | Know how the agent is doing over many conversations, and what is yours to fix vs. Vitrina's | `analyze-business` |
 | See where people come from and where they drop before booking or buying | `analyze-funnel` |
 | Understand or judge the Meta ads: cost per patient/customer, return, what to pause or scale, measurement health | `vitrina-ads` |
+| The Monday summary: numbers vs last week, ads brief, flags, three actions | `weekly-review` |
 
 Before any of them, check the connection once: call `ai_agents_list`. If the tool is missing or only a handful of `mcp__vitrina__*` tools exist, the session is on a read-only connector key (the one the «Conectar tu IA (MCP)» page issues); editing agents needs an API key from **Configuración → Claves de API** added with `claude mcp add --transport http vitrina https://api.vitrinadev.com/mcp --header "Authorization: Bearer sk_…"`. Reading ads needs `ads:read`, which only admin roles hold. The exact scope list is in `improve-vitrina-agent`'s connect reference.
 
-Typical chains: `analyze-business` or `analyze-funnel` finds the leak → `improve-vitrina-agent` fixes the agent's part → `vitrina-ads` judges the ad's part.
+Typical chains: `weekly-review` → `analyze-business` or `analyze-funnel` finds the leak → `improve-vitrina-agent` or `write-knowledge` fixes the agent's part → `test-vitrina-agent` keeps it fixed → `vitrina-ads` judges the ad's part.
