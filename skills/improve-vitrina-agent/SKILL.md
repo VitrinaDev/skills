@@ -13,6 +13,12 @@ Reference, read on demand:
 - [`references/surface.md`](references/surface.md) — the MCP tools / REST routes for every edit, their scopes, and the writes that bypass the draft.
 - [`references/forensics.md`](references/forensics.md) — how a turn is persisted (reasoning, tool_calls, tool results, reply rows), `GET /conversations/:id/agent-turn`, SQL recipes.
 
+Mechanics that cost fresh sessions the most time:
+- A conversation thread is `conversations_export {id, format:"json"}` (accepts `C-1234`). `tickets_messages_thread` takes a **ticket** id (`T-n`), never a conversation.
+- Read one agent with `ai_agents_get {id}`; the list tools answer with summaries and omit prompt and skill bodies (`skills_get` for a body). A tool result over the harness limit is saved to a file whose path is in the error: read that file instead of re-calling.
+- Writing a whole prompt (60k+ chars) through a tool call is fragile: run `scripts/mcp-call.mjs <tool> "$(cat args.json)"` from this skill's folder with `VITRINA_API_KEY` set to the same key the MCP server uses (`VITRINA_MCP_URL` for a non-production host). Pass `expected_version` / `expected_config_version` from the row you read so a concurrent edit is refused instead of overwritten.
+- REST routes the catalogue lacks (`/conversations/:id/agent-turn`, `/agent-runs`, `/ai-status`) take the same Bearer key with `curl`.
+
 ## Step 1 — Fix the target
 
 Resolve tenant → agent → conversation(s). `ai_agents_list` (or `GET /ai-agents`) names the agents; the one that answers is decided per turn (stage → originating agent → channel assignee → `is_default`), so when a tenant has several, confirm from the conversation's reply rows (`sender_id` = agent id) rather than assuming the default.
@@ -47,7 +53,9 @@ Rules that keep the tenant safe:
 - **Skills and KB are live the moment you write them.** `skills_update` changes every agent sharing that skill; `kb_files_replace` re-ingests in <30 s. Prefer editing content over adding a parallel skill/doc; a skill `description` is its trigger, so sharpen it when the agent failed to load the skill.
 - **Attach through the draft when you also publish:** a publish with non-null `draft_skill_ids` / `draft_kb_file_ids` *replaces* the live attachment set — include every currently attached id.
 - Platform-emitted text is English; the agent's prompt, skills and KB stay in the tenant's language (Spanish here). Principles over phrase bans; never hardcode a reply language.
-- Fix root causes platform-wide when the bug is in the harness (open an issue / PR in vitrina-app), never with a tenant-only prompt patch.
+- **One rule, one truth, aligned everywhere.** Before editing, list every place the rule already lives (prompt sections, skill content, KB sections); change the layer that failed and align the others, or the agent will read two versions. Back every edited artifact up first.
+- **Publish or hand over?** If the user asked you to fix it, publish and say so. If they asked what happened or how to fix it, leave the change in the draft (prompt) or describe it (skills/KB are live the moment you write them, so for those propose first) and tell them exactly what is pending.
+- **Platform-owned causes are filed, not prompted around.** A failing integration (`could not reach …`, HTTP 5xx), a silent turn after correct tool use, undelivered or duplicated messages, a handoff nobody received: file an `ai_agents_change_request_create` with the evidence (conversation refs, the tool result text) and report the `SR-n` id; a missing tool or integration is `coach_escalate_to_vitrina`. A prompt rule for how the agent *talks* about a failure is still a fair workspace fix; the failure itself is not.
 
 Done when: the edited artifacts are saved both in Vitrina and in `<slug>/agent-update-<date>/` (after/), with a README line per change and its evidence.
 

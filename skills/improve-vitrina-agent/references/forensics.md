@@ -17,6 +17,9 @@ Each revision pass (freshness, pending-question, price gate) appends another rea
 
 ## Ways to read a thread
 
+Fastest path for one conversation: `conversations_export {id, format:"json"}` — accepts the display id, returns contact, ticket, attributes and every message row (10k chars for a short thread). `tickets_messages_thread` is keyed by **ticket** (`T-n`); a `C-n` there fails with `invalid input syntax for type uuid`.
+
+
 - MCP `tickets_messages_thread {ticket_id, limit≤2000}` (keeps `type`, `tool_calls`, `tool_call_id`), `conversations_export {id, format: json}` (use JSON — markdown labels reasoning rows as "assistant"), `conversations_list {status?, channel?, search?, limit≤100}`, `conversations_linked_records {id}`.
 - REST `GET /conversations/:id/messages?limit≤200&order=asc` (tool fields intact, plus `author`), `GET /conversations/:id/export?format=json`.
 - **`GET /conversations/:id/agent-turn`** (REST, `conversations:read`): the exact assembled `system_prompt`, replayed `messages`, `history_summary`, full `tools` definitions, `skills`, `knowledge_base`, `attributes`, `open_leads`, `previous_conversations`, `business_hours`, or `human_only` + `silence_reason` when the agent would not run. Reproduces the *current* config, not the one at the time of the turn.
