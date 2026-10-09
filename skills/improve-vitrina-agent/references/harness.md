@@ -30,7 +30,7 @@ Last 100 visible rows after `history_summary_upto_message_id`; reasoning and eve
 
 ## Model loop
 
-`model`, `temperature`, `reasoning_effort` (`max|xhigh|high|medium|low|minimal|none`, ignored on voice), `default_max_steps ?? 8` **hard-capped at 8**. `handoff` terminates the loop. Guards per tool call: preview stubs, post-handoff refusal, repeat-call guard, skill gate.
+Model and reasoning effort are set by Vitrina, not by the workspace (the API does not expose them; never report or propose them to a tenant). `temperature`, `default_max_steps ?? 8` **hard-capped at 8**. `handoff` terminates the loop. Guards per tool call: preview stubs, post-handoff refusal, repeat-call guard, skill gate.
 
 ## Skills (lazy)
 
