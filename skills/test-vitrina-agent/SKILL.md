@@ -15,7 +15,7 @@ Done when: the draft's hard fails and checks state the expected behaviour in one
 
 ## Step 2 — Save and run
 
-`ai_agents_scenario_create {id, ...draft}` then `ai_agents_scenarios_run {id, scenario_ids:[…], agent_version:"draft"|"live", repeats:1}`; poll `ai_agents_scenario_runs_list {id, batch_id}` until every run has a status; `ai_agents_scenario_run_get {id, run_id}` for the transcript, tool calls, check evidence and hard fails — **80–230k chars per run**, so open it only for red or partial runs and, when the harness saves it to a file, grep that file for `hard_fails`, `checks` and the first `text` turns instead of reading it whole. Runs take 2–6 minutes: wait with a single `sleep 120` then poll `ai_agents_scenario_runs_list {id, batch_id}`. Test the **draft** when a fix is pending, the **live** version when auditing.
+`ai_agents_scenario_create {id, ...draft}` then `ai_agents_scenarios_run {id, scenario_ids:[…], agent_version:"draft"|"live", repeats:1}`; poll `ai_agents_scenario_runs_list {id, batch_id}` until every run has a status; `ai_agents_scenario_run_get {id, run_id}` for the transcript, tool calls, check evidence and hard fails (summary by default since app v12.4; `detail:"full"` adds reasoning and the sandbox state, 80–230k chars — only when a check's evidence is not enough). Runs take 2–6 minutes: wait with a single `sleep 120` then poll `ai_agents_scenario_runs_list {id, batch_id}`. Test the **draft** when a fix is pending, the **live** version when auditing.
 
 Done when: each run has a verdict and you have read the transcript of every failed or partial one.
 

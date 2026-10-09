@@ -21,7 +21,7 @@ Done when: spend, return, best campaign, wearing ad and measurement state are ea
 
 ## Step 3 — What the platform flagged
 
-`coach_findings_list {ai_agent_id, status:"active", limit:20}` (new findings this week), `coach_stats` (corrections, proposals pending), `ai_agents_change_requests_list {id, limit:20}` (requests waiting on Vitrina or on you), `worker_failures_list {unreplayed:true, limit:20}`, `insights_overview_live_get` (unattended, unassigned right now). Unanswered handoffs: conversations with `handler:"human"` and no team reply — `call_operation conversations_list {handler:"human", unassigned:true, limit:5}` (rows are ~7k chars each with embeds; five examples are enough, `insights_overview_live_get.unassigned` is the count). `ai_agents_change_requests_list` currently needs `corrections:write`; without it, say the requests were not read.
+`coach_findings_list {ai_agent_id, status:"active", limit:20}` (new findings this week), `coach_stats` (corrections, proposals pending), `ai_agents_change_requests_list {id, limit:20}` (requests waiting on Vitrina or on you), `worker_failures_list {unreplayed:true, limit:20}`, `insights_overview_live_get` (unattended, unassigned right now). Unanswered handoffs: conversations with `handler:"human"` and no team reply — `call_operation conversations_list {handler:"human", unassigned:true, limit:5}` (rows are ~7k chars each with embeds; five examples are enough, `insights_overview_live_get.unassigned` is the count). `ai_agents_change_requests_list` needs `corrections:read` (app v12.4+; `corrections:write` on older servers); without it, say the requests were not read.
 
 Done when: every open item has an id and an owner (team, agent config, Vitrina).
 
