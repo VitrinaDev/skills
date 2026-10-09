@@ -15,7 +15,7 @@ Done when: the draft's hard fails and checks state the expected behaviour in one
 
 ## Step 2 — Save and run
 
-`ai_agents_scenario_create {id, ...draft}` then `ai_agents_scenarios_run {id, scenario_ids:[…], agent_version:"draft"|"live", repeats:1}`; poll `ai_agents_scenario_runs_list {id, batch_id}` until every run has a status; `ai_agents_scenario_run_get {id}` for the transcript, tool calls, check evidence and hard fails. Test the **draft** when a fix is pending, the **live** version when auditing.
+`ai_agents_scenario_create {id, ...draft}` then `ai_agents_scenarios_run {id, scenario_ids:[…], agent_version:"draft"|"live", repeats:1}`; poll `ai_agents_scenario_runs_list {id, batch_id}` until every run has a status; `ai_agents_scenario_run_get {id, run_id}` for the transcript, tool calls, check evidence and hard fails — **80–230k chars per run**, so open it only for red or partial runs and, when the harness saves it to a file, grep that file for `hard_fails`, `checks` and the first `text` turns instead of reading it whole. Runs take 2–6 minutes: wait with a single `sleep 120` then poll `ai_agents_scenario_runs_list {id, batch_id}`. Test the **draft** when a fix is pending, the **live** version when auditing.
 
 Done when: each run has a verdict and you have read the transcript of every failed or partial one.
 
@@ -29,7 +29,7 @@ Done when: every red run is attributed to agent, scenario or platform.
 
 Put regression scenarios in the **golden** suite (`ai_agents_scenario_suite_create {id, name, kind:"golden", filter:{tags|scenario_ids}, policy:{block_publish_on_hard_fail:true, min_pass_rate}}`; one suite per agent, add scenarios by tag). `ai_agents_scenario_suite_run` after every fix; `ai_agents_publish_gate_get {id}` tells whether publishing is allowed (`blocked`/`stale` block, `pending` warns, `none` never blocks). Nightly suites notify; exploratory ones never block.
 
-Done when: the scenario is active, tagged into the golden suite, and the last suite run is green or its red is explained.
+Done when: the scenario is active, tagged into the golden suite, and the last suite run is green or its red is explained. A scenario that passed on every repeat without ever having failed has not yet proved it catches the bug: say so, and run it against the version that produced the original conversation (`versions_list`, `agent_version:"draft"` after `versions_restore`) when that version still exists.
 
 ## Step 5 — Report
 

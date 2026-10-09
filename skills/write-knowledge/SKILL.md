@@ -14,7 +14,7 @@ A fact goes in a document; a sequence of actions goes in a skill; a fact the age
 
 ## Step 1 — Capture the fact, in the business's words
 
-Read everything the user gave (text, PDF, screenshot, a previous conversation). Resolve every ambiguity the retrieval will not forgive: units and currency, validity dates («vigente hasta»), exceptions, who it applies to, the exact names the customers use. Ask only what blocks writing; assume nothing about prices or hours.
+Read everything the user gave (text, PDF, screenshot, a previous conversation). Resolve every ambiguity the retrieval will not forgive: units and currency, validity dates («vigente hasta»), exceptions, who it applies to, the exact names the customers use. Ask only what blocks writing; assume nothing about prices or hours. A new fact that **contradicts** what the agent already says (another address, another price) is a blocking question, not an edit: changes go live the moment they are saved.
 
 Done when: you can list the facts as short declarative sentences with their source.
 
