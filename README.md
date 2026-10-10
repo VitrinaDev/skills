@@ -64,7 +64,7 @@ The skills read and write through Vitrina's MCP server (`https://api.vitrinadev.
 
 Connected before «Agentes de IA» existed, or without ticking it? In Vitrina, **Configuración → Conectar tu IA → Desconectar** that app, then connect again and tick it.
 
-What a connection cannot do: simulate the agent or run test scenarios (they spend model budget — try changes in the agent's «Probar» tab in Vitrina), or upload knowledge-base files (the skill writes the file; you upload it in Vitrina). For scripts and automation, an API key from **Configuración → Claves de API** (`--header "Authorization: Bearer sk_…"`) reaches the full catalogue within its scopes. Details: [`skills/improve-vitrina-agent/references/connect.md`](./skills/improve-vitrina-agent/references/connect.md).
+What a connection cannot do: simulate the agent or run test scenarios (they spend model budget — try changes in the agent's «Probar» tab in Vitrina). For scripts and automation, an API key from **Configuración → Claves de API** (`--header "Authorization: Bearer sk_…"`) reaches the full catalogue within its scopes. Details: [`skills/improve-vitrina-agent/references/connect.md`](./skills/improve-vitrina-agent/references/connect.md).
 
 ## The skills
 
