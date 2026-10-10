@@ -56,4 +56,4 @@ Wait for `status = ingested` (`kb_files_list`) before testing retrieval.
 
 ## Not reachable from a connector (REST with an `sk_` key; tier `interna`)
 
-`GET /conversations/:id/agent-runs`, `POST /ai-agents/:id/coach/run`, `POST /copilot/explain`. Reachable now: `GET /conversations/:id/agent-turn` = `call_operation conversation_agent_turn_list {params:{id}}`.
+`GET /conversations/:id/agent-runs`, `POST /ai-agents/:id/coach/run`, `POST /copilot/explain`. Reachable now: `GET /conversations/:id/agent-turn` = `call_operation conversation_agent_turn_list {params:{id}}`. On a clinic (healthcare) workspace a connector is refused with `403 CONNECTED_APP_SENSITIVE_DATA` (the turn carries patient data unfiltered): work from the message thread and reasoning rows instead, or use an `sk_` key.
