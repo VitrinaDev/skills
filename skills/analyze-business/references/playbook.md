@@ -1,6 +1,6 @@
 # Audit playbook — tools, classification, filing
 
-Ids accept UUIDs; conversation ids also accept `C-1234`. Tool names are the `sk_` catalogue. On a connector: the agent, coach, change-request, insights, contacts, leads and `conversations_list` reads are named tools too; a thread is `call_operation conversation_messages_list {params:{id, order:"asc"}}` (or `conversation_export_list {params:{id, format:"json"}}`), silence is `conversation_ai_status_list {params:{id}}`; `analytics_cost`, `analytics_latency`, `coach_stats`, `worker_failures_list`, `tickets_messages_thread`, agent-turn and agent-runs need an `sk_` key — say which rows of the audit you could not read.
+Ids accept UUIDs; conversation ids also accept `C-1234`. Tool names are the `sk_` catalogue. On a connector: the agent, coach, change-request, insights, contacts, leads and `conversations_list` reads are named tools too; a thread is `call_operation conversation_messages_list {params:{id, order:"asc"}}` (or `conversation_export_list {params:{id, format:"json"}}`), silence is `conversation_ai_status_list {params:{id}}`; `analytics_latency`, `coach_stats`, `worker_failures_list`, `tickets_messages_thread` and agent-runs need an `sk_` key — say which rows of the audit you could not read. The assembled prompt of a turn (`conversation_agent_turn_list`) and macros, tags and pipelines reads are reachable on a connector. Cost, token and model figures are not exposed by any credential.
 
 ## Reading tools
 
@@ -8,7 +8,7 @@ Ids accept UUIDs; conversation ids also accept `C-1234`. Tool names are the `sk_
 |---|---|---|
 | Agents | `ai_agents_list`, `ai_agents_get {id}` | live + draft config, `behavior_policies` |
 | Health numbers | `ai_agents_metrics_get {id, days≤90}`, `insights_ai_agents_get`, `insights_conversations_get`, `insights_csat_get`, `insights_sla_get` (`from`/`to` or window args) | |
-| Cost / latency | `analytics_cost {from, to?}`, `analytics_latency {kind?, since_minutes≤10080}` | kind `agent_turn` |
+| Latency | `analytics_latency {kind?, since_minutes≤10080}` | kind `agent_turn` |
 | Platform reviews | `coach_reviews_list {ai_agent_id, limit≤200 — use 50, 200 is ~200k chars, with_handoff?}` — outcome `resolved_by_ai | resolved_by_human | unresolved | abandoned | noise`, summary, handoff | |
 | Findings | `coach_findings_list {ai_agent_id, status? active|open|investigating|investigated|addressed|dismissed|all}`, `coach_finding_get {ai_agent_id, finding_id}` (evidence + proposals), `coach_finding_investigate` (queues the investigator, needs `ai_agents:simulate`) | |
 | Proposals | `coach_proposals_list {ai_agent_id?, status? proposed|accepted|rejected}`, `coach_proposal_decide {proposal_id, decision}` (applies to the draft) | |
@@ -16,7 +16,7 @@ Ids accept UUIDs; conversation ids also accept `C-1234`. Tool names are the `sk_
 | Platform failures | `worker_failures_list {queue?, unreplayed?, limit≤200}` — final-failed jobs (`messageQueue` = an inbound that never got a turn) | |
 | Conversations | `conversations_list {page, limit≤100, channel?, status?, search?}`, `conversations_export {id, format:"json"}`, `conversations_linked_records {id}`, `conversations_calls` | |
 | Thread by ticket | `tickets_messages_thread {ticket_id, limit≤2000, before?}` | |
-| Exact turn | REST `GET /api/v1/conversations/:id/agent-turn` (assembled prompt, tools, replayed history, or `human_only` + `silence_reason`), `GET /conversations/:id/agent-runs?limit≤20` (steps: `kb_lookup | tool_call | reply | handoff | …`, tokens, cost), `GET /conversations/:id/ai-status` | `conversations:read` |
+| Exact turn | connector `call_operation conversation_agent_turn_list {params:{id}}` = REST `GET /api/v1/conversations/:id/agent-turn` (assembled prompt, tools, replayed history, or `human_only` + `silence_reason`; no model involved); `sk_` key only `GET /conversations/:id/agent-runs?limit≤20` (steps: `kb_lookup | tool_call | reply | handoff | …`); `conversation_ai_status_list` = `GET /conversations/:id/ai-status` | `conversations:read` |
 | Contacts | `contacts_stats`, `contacts_duplicates`, `contacts_search {q, limit≤100}`, `contacts_get {id}`, `contact_completeness_check` | |
 | Leads | `lead_conversations_list`, `leads_kanban`, `lead_interests_list` | |
 
@@ -37,7 +37,7 @@ Export JSON message rows: `sender_type` (`contact | ai_agent | human_user | syst
 | Two replies to one message, reply ignores the customer's last message | Coalescing / revision gate | Vitrina | message timestamps |
 | Message sent but customer never received it | Delivery | Vitrina | `metadata.delivery_*` |
 | Agent kept answering after a human replied, or stayed silent when the human never did | Handling rules | Vitrina (check `conversation.handler` first) | ai-status output |
-| Reply took minutes | Latency / provider | Vitrina | `analytics_latency`, agent-runs latency |
+| Reply took minutes | Latency | Vitrina | `analytics_latency`, agent-runs timings |
 | Inbound never answered at all | Job failed, AI muted by availability rules, contact set to no-bot | Vitrina (failure) / Workspace (availability, contact flag) | `worker_failures_list`, ai-status |
 | Confused who it was talking to | Duplicate/merged contacts, shared phone | Workspace (data) / Vitrina (identity logic) | `contacts_duplicates`, contact record |
 | Needs a tool or integration that does not exist | Capability gap | Vitrina | the customer's ask, count of occurrences |
@@ -52,7 +52,7 @@ Rule of thumb: if a prompt, skill, KB document, tool attachment or setting can c
 | Follow it | `ai_agents_change_request_get`, `_transition`, `_scenario`, `_scenario_evaluate`, `_propose` — statuses `received → grounded → reproduced → proposed → applied → verified`, or `ya_cumple` (already behaves), `harness` (platform change) |
 | Missing capability | `coach_escalate_to_vitrina` | `capability_key`, `title`, `description?`, `category? integration|tool|channel|reporting|automation|other`, `reason?`, `ai_agent_id?` |
 | Freeze evidence | `coach_correction_capture {conversation_id, title?}`, `coach_annotation_add` |
-| Handoff verdict | `coach_handoff_feedback_submit {conversation_id, verdict: missing_knowledge|missing_capability|wrong_behavior|correct_handoff|skipped, note?}` |
+| Handoff verdict | `coach_handoff_feedback_submit {conversation_id, verdict: missing_knowledge|missing_capability|wrong_behavior|correct_handoff|skipped, note?}`; connector `call_operation conversation_handoff_feedback_create {params:{id}, body:{verdict, note?}}` (pack «Conversaciones») |
 | Apply a platform proposal | `coach_proposal_decide {proposal_id, decision}` (`sk_` key; lands in the agent draft — show the diff and publish only on the user's yes) |
 
 ## Report template
@@ -60,7 +60,7 @@ Rule of thumb: if a prompt, skill, KB document, tool attachment or setting can c
 ```markdown
 # Audit — <agent> — <window>
 ## Numbers
-conversations · AI-resolved · handed off · unresolved · CSAT · p95 latency · cost
+conversations · AI-resolved · handed off · unresolved · CSAT · p95 latency
 ## Findings
 | # | Conversation | Symptom | Evidence | Cause | Owner |
 ## Workspace fixes (ranked)

@@ -15,7 +15,7 @@ Window args: `window` required (24h|7d|30d|90d|calendar_month|calendar_year|cust
 | `insights_conversations_get` | blocks `conversations`, `messages_in/out`, `first_response_seconds`, `resolution_seconds`, `resolutions`, `customer_wait_seconds` (each `total/avg`, `delta_pct`, `series[]`); `first_response_p50/p90_seconds`, `facturables`, `solo_humano` |
 | `insights_sources_get` / `insights_channels_get` / `insights_tags_get` / `insights_teams_get` | rows `{key, label, conversations, avg_first_response_seconds, avg_resolution_seconds, avg_customer_wait_seconds, resolutions}` — conversations **created** in the window; absent key = 0 |
 | `insights_agents_get` | per human: replies, avg response, breakdown fields |
-| `insights_ai_agents_get` / `insights_bots_get` | automated conversations, handoffs, deflection/handoff rate, cost, latency |
+| `insights_ai_agents_get` / `insights_bots_get` | automated conversations, handoffs, deflection/handoff rate, latency (no cost or model figures: none is exposed) |
 | `insights_leads_get` | `open` (snapshot, not windowed), `won/lost/unqualified` (closed in window), values (+by currency), `win_rate` = won/(won+lost), `avg_cycle_seconds`, `created_series`, `won_series`, `revenue_series`, `funnel[]{stage_id, stage_name, position, open_count, total_value, median_time_in_stage_hours: null}` across every sales pipeline. **No source breakdown.** |
 | `insights_csat_get` | AI-estimated satisfaction, `recent` ≤50 |
 | `insights_sla_get` | targets, hit rate, breaches ≤50 |
@@ -51,3 +51,5 @@ With the add-on: `ads_overview_get`, `ads_performance_list {by}`, `ads_funnel_ge
 ## Blind spots to state when relevant
 
 No cost per lead anywhere; no true time-in-stage; ads invisible in `source`; `insights_leads.open` is a snapshot; `leads_*` analytics are all-time; `appointments_list` truncates silently; insights `recent`/`breaches` carry names.
+
+Writes that fix a leak, each with the user's yes and the pack it needs (all `call_operation`; `describe_operation` first): move a lead `lead_stage_replace` / `lead_pipeline_replace` («Leads»); change the board itself `pipelines_create`, `pipeline_replace`, `stages_create`, `stages_bulk_create`, `stage_replace`, `stage_delete`, `pipeline_template_apply_create` («Configuración del inbox»); routing of new conversations `assignment_rules_create`, `assignment_rule_update`, `assignment_rules_order_replace` («Configuración del inbox»); booking hours and appointment types `appointments_config_replace`, `appointment_types_create` / `_update` («Agenda»). Deleting a stage or rule is destructive: name what it affects first.

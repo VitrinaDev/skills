@@ -56,15 +56,40 @@ scripts/link-skills.sh ~/my-project/.claude/skills
 
 ## Connect your agent to Vitrina
 
-The skills read and write through Vitrina's MCP server (`https://api.vitrinadev.com/mcp`). Nothing runs outside your workspace and no model key of your own is needed — the analysis is your agent's own reasoning. Vitrina's **Configuración → Conectar tu IA (MCP)** page walks you through it; you sign in to Vitrina, and on the consent screen you tick what the connection may change. **Tick «Agentes de IA»** to let the skills edit your agent (draft, publish, skills, knowledge links, change requests).
+The skills read and write through Vitrina's MCP server (`https://api.vitrinadev.com/mcp`). Nothing runs outside your workspace and no model key of your own is needed — the analysis is your agent's own reasoning. Vitrina's **Configuración → Conectar tu IA (MCP)** page walks you through it; you sign in to Vitrina, and on the consent screen you tick what the connection may change. Every pack is off by default, and a connection only gets the permissions your own role in Vitrina already holds.
 
-- **Claude chat:** claude.ai → Customize → Connectors → add custom connector → `https://api.vitrinadev.com/mcp` → sign in → tick «Agentes de IA».
-- **Claude Code:** `claude mcp add --transport http vitrina https://api.vitrinadev.com/mcp`, then `/mcp` → `vitrina` → Authenticate → sign in → tick «Agentes de IA».
+- **Claude chat:** claude.ai → Customize → Connectors → add custom connector → `https://api.vitrinadev.com/mcp` → sign in → tick the packs you need.
+- **Claude Code:** `claude mcp add --transport http vitrina https://api.vitrinadev.com/mcp`, then `/mcp` → `vitrina` → Authenticate → sign in → tick the packs you need.
 - **Cursor and others:** add the same URL as a remote MCP server and sign in.
 
-Connected before «Agentes de IA» existed, or without ticking it? In Vitrina, **Configuración → Conectar tu IA → Desconectar** that app, then connect again and tick it.
+Reading is included for every connection. Writing is granted per area, with the packs below; each pack gives the connection everything the Vitrina screen for that area does, except the exclusions listed after the table.
 
-What a connection cannot do: simulate the agent or run test scenarios (they spend model budget — try changes in the agent's «Probar» tab in Vitrina). For scripts and automation, an API key from **Configuración → Claves de API** (`--header "Authorization: Bearer sk_…"`) reaches the full catalogue within its scopes. Details: [`skills/improve-vitrina-agent/references/connect.md`](./skills/improve-vitrina-agent/references/connect.md).
+| Pack | What it unlocks | Skills that use it |
+|---|---|---|
+| «Contactos» | create, edit, merge, tag and import contacts; consent, legal identity, file attributes | `vitrina-contacts` |
+| «Leads» | create leads, move them between stages and pipelines | `analyze-funnel` |
+| «Casos» | edit, assign, move tickets; claim a ticket | |
+| «Conversaciones» | assign, resolve, claim, tag conversations; AI on/off for a conversation (ai-control, bot-gate override); handoff feedback | `improve-vitrina-agent` |
+| «Mensajes a clientes» | send a message, template, flow or file to a customer; apply a macro (with «Conversaciones»). Also required by every act that notifies a customer: sending a campaign, test-sends, cancelling an appointment | `vitrina-campaigns`, `clinic-agenda` |
+| «Agentes de IA» | edit the agent (draft, publish, versions), its skills, knowledge base (files up to ~1 MB per call) and its change requests; resolve or dismiss Mejoras | `improve-vitrina-agent`, `write-knowledge` |
+| «Agenda» | create and move appointments, appointment types, schedule configuration; for clinics also the clinic agenda (agenda appointments, professionals, services, lab orders, pack sessions) when your role holds `clinic:write`; cancelling an appointment also needs «Mensajes a clientes» | `clinic-agenda` |
+| «Seguimientos» | follow-up rules, subscriptions, recontacto configuration and its approval queue | `vitrina-campaigns` |
+| «Campañas y plantillas» | WhatsApp templates (incl. header media), flows, campaigns, audiences, email templates; sending, scheduling and test-sends also need «Mensajes a clientes» | `vitrina-campaigns` |
+| «Centro de ayuda» | help centers, sections, articles, translations, media | |
+| «Configuración del inbox» | macros, custom fields and attributes, SLAs, triggers, routing and assignment rules, pipelines and stages | `vitrina-contacts` |
+| «Catálogo» | products, marketplace sync | |
+
+Some permissions inside a pack are optional and only granted when your role holds them (for example the clinic agenda inside «Agenda»). A pack missing from your connection is never an error in the skill: it says which pack to add.
+
+**Add a pack later, without reconnecting:** in Vitrina, **Configuración → Conectar tu IA (MCP) → Apps conectadas → «Editar permisos»**. Only the member who connected the app can add permissions. Connected before a pack existed? Open «Editar permisos» once; an older «Agenda» picks up cancelling and the clinic agenda there too.
+
+What a connection cannot do:
+- anything that spends the workspace's model budget: simulating the agent, running test scenarios or evals, the change-request analysis steps (ground, scenario, scenario refine, propose — a connection files and reads change requests only), AI-generated help-center translations, tag suggestions, the WhatsApp template category check and parameter binder, follow-up AI drafts (try changes in the agent's «Probar» tab in Vitrina);
+- show or change model and provider names, or cost and token figures: Vitrina removed them from every API and MCP response;
+- create or delete AI agents;
+- reach sensitive clinic data (patients register, clinical record, consents, documents, payments) or list the members of an audience (health data).
+
+For scripts and automation, an API key from **Configuración → Claves de API** (`--header "Authorization: Bearer sk_…"`) reaches the full catalogue within its scopes, including the internal-tier reads (`agent-runs`, coach runs). Details: [`skills/improve-vitrina-agent/references/connect.md`](./skills/improve-vitrina-agent/references/connect.md).
 
 ## The skills
 
