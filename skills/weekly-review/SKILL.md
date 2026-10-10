@@ -1,15 +1,15 @@
 ---
 name: weekly-review
-description: "The Monday review of a Vitrina workspace in one pass, read-only and cheap: this week vs last for conversations, response times, AI resolution and handoffs, leads won/lost, bookings, CSAT, cost; the ads brief (spend, return, best and wearing ads) when the add-on is on; what the platform flagged (findings, unanswered handoffs, failed jobs, open change requests); and the three things to do this week. Use when the user asks 'cómo nos fue la semana', 'resumen del lunes', 'weekly review', 'qué pasó esta semana', wants a recurring summary for the team or the owner, or asks for the numbers before a meeting."
+description: "The Monday review of a Vitrina workspace in one pass, read-only and cheap: this week vs last for conversations, response times, AI resolution and handoffs, leads won/lost, bookings, CSAT; the ads brief (spend, return, best and wearing ads) when the add-on is on; what the platform flagged (findings, unanswered handoffs, failed jobs, open change requests); and the three things to do this week. Use when the user asks 'cómo nos fue la semana', 'resumen del lunes', 'weekly review', 'qué pasó esta semana', wants a recurring summary for the team or the owner, or asks for the numbers before a meeting."
 ---
 
 # Weekly review
 
-Summaries only — no thread reading, no edits. Under a minute and under a dollar. Every number comes with its previous-week value; every flag comes with the id to open. Needs `analytics:read, corrections:read, leads:read, followups:read` (+ `ads:read` for the ads block, `worker_failures:read` for failed jobs). Window: `window:"7d"` for insights (the delta is built in), `from`/`to` of the last 7 days for ads.
+Summaries only — no thread reading, no edits. Under a minute. Every number comes with its previous-week value; every flag comes with the id to open. Needs `analytics:read, corrections:read, leads:read, followups:read` (+ `ads:read` for the ads block, `worker_failures:read` for failed jobs). Window: `window:"7d"` for insights (the delta is built in), `from`/`to` of the last 7 days for ads.
 
 ## Step 1 — Numbers
 
-In one batch: `insights_conversations_get {window:"7d"}` (conversations, first response p50/p90, resolution, billable), `insights_ai_agents_get` (automated, handoffs, deflection, cost), `insights_channels_get` and `insights_sources_get`, `insights_leads_get` (won/lost, win rate, revenue series), `insights_csat_get`, `insights_sla_get` (only if `has_policies`), `followups_overview`, `call_operation insights_resultados_list {from,to}` (bookings, conversation→booking rate, time to book, no-shows). Use `delta_pct` where the block carries it; otherwise compare with a second call on the previous window only for the two or three numbers that matter.
+In one batch: `insights_conversations_get {window:"7d"}` (conversations, first response p50/p90, resolution, billable), `insights_ai_agents_get` (automated, handoffs, deflection), `insights_channels_get` and `insights_sources_get`, `insights_leads_get` (won/lost, win rate, revenue series), `insights_csat_get`, `insights_sla_get` (only if `has_policies`), `followups_overview`, `call_operation insights_resultados_list {from,to}` (bookings, conversation→booking rate, time to book, no-shows). Use `delta_pct` where the block carries it; otherwise compare with a second call on the previous window only for the two or three numbers that matter.
 
 Done when: you have volume, speed, automation, outcome and satisfaction, each with its delta.
 

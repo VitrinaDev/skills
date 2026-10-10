@@ -49,6 +49,6 @@ Done when: the user approved the change and the file shows `ingested` with `kb_f
 
 With an `sk_` key, build and run one scenario with the customer's question (`ai_agents_scenarios_build {id, from:"description", description:"…"}` → `ai_agents_scenario_create` → `ai_agents_scenarios_run {id, scenario_ids}` → `ai_agents_scenario_run_get`): the transcript must show the `search_knowledge_base` (or `load_skill`) call and a reply that quotes your fact. `ai_agent_simulate` alone is weaker (tools are declared, not executed). Keep the scenario; `test-vitrina-agent` turns it into a regression check.
 
-On a connector, scenarios cannot be built or run: give the user the exact customer question to try in the agent's «Probar» tab in Vitrina (the test bench), and afterwards read the next real conversations that ask it.
+On a connector, scenarios cannot be built or run (model spend): give the user the exact customer question to try in the agent's «Probar» tab in Vitrina (the test bench), and afterwards read the next real conversations that ask it.
 
 Done when: one run or test-bench try shows the agent retrieving and using the new content, or you have said exactly what still prevents it.

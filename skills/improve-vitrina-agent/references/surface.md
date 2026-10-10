@@ -1,6 +1,6 @@
 # Edit surface — connector operations, `sk_` tools, REST routes, and the writes that bypass the draft
 
-Two columns per action. **Connector**: a named read tool, or `call_operation {operation_id, params, body}` (`params` = path and query parameters, flat; `body` = the JSON body). Connector writes need the «Agentes de IA» pack (see `connect.md`); run `describe_operation {operation_id}` once before the first call of an operation to read its exact body schema. **`sk_` key**: the hand-written MCP tool. REST paths are under `/api/v1`.
+Two columns per action. **Connector**: a named read tool, or `call_operation {operation_id, params, body}` (`params` = path and query parameters, flat; `body` = the JSON body). Connector writes need the «Agentes de IA» pack (see `connect.md`; add it in Vitrina → Configuración → Conectar tu IA (MCP) → Apps conectadas → «Editar permisos», no reconnect); run `describe_operation {operation_id}` once before the first call of an operation to read its exact body schema. **`sk_` key**: the hand-written MCP tool. REST paths are under `/api/v1`.
 
 Model and reasoning effort are managed by Vitrina: the API neither returns nor accepts them. Never tell a tenant which model or provider their agent runs on, and never offer to change it.
 
@@ -48,11 +48,12 @@ Wait for `status = ingested` (`kb_files_list`) before testing retrieval.
 
 ## Testing and improvement loops
 
-- **Connector (reads only):** `ai_agents_publish_gate_get`, `ai_agents_scenarios_list`, `ai_agents_scenario_runs_list`, `ai_agents_scenario_run_get`, `ai_agents_scenario_suites_list`, `coach_reviews_list`, `coach_findings_list`, `coach_finding_get`, `coach_proposals_list`, `ai_agents_change_requests_list`, `ai_agents_change_request_get`. Simulating, building or running scenarios is not available; the person tries the draft in the agent's «Probar» tab in Vitrina (the test bench).
-- **Change request** (ADR 0103, `SR-n`): connector `call_operation ai_agent_change_requests_create {params:{id}, body:{verbatim ≤5000, reporter_kind: member|client_via_member, conversation_refs?:[{conversationId, messageId?}]}}`; `sk_` `ai_agents_change_request_create`.
+- **Connector (reads only for tests):** `ai_agents_publish_gate_get`, `ai_agents_scenarios_list`, `ai_agents_scenario_runs_list`, `ai_agents_scenario_run_get`, `ai_agents_scenario_suites_list`, `coach_reviews_list`, `coach_findings_list`, `coach_finding_get`, `coach_proposals_list`, `ai_agents_change_requests_list`, `ai_agents_change_request_get`. Simulating, building or running scenarios spends model budget and is excluded; the person tries the draft in the agent's «Probar» tab in Vitrina (the test bench).
+- **Mejoras (findings):** `call_operation ai_agent_finding_update {params:{id, findingId}, body:{status: open|addressed|dismissed, note?}}` (pack «Agentes de IA»; `dismissed` stores the note). Handoff feedback: `call_operation conversation_handoff_feedback_create {params:{id}, body:{verdict: missing_knowledge|missing_capability|wrong_behavior|correct_handoff|skipped, note?}}` (pack «Conversaciones»; `skipped` only records the dismissal; any other verdict queues a review that reads the note).
+- **Change request** (ADR 0103, `SR-n`): connector `call_operation ai_agent_change_requests_create {params:{id}, body:{verbatim ≤5000, reporter_kind: member|client_via_member, conversation_refs?:[{conversationId, messageId?}]}}`, read with `ai_agents_change_requests_list` / `ai_agents_change_request_get`; `sk_` `ai_agents_change_request_create`. A connector **files and reads only**: `ai_agent_change_request_ground_create`, `…_scenario_create`, `…_scenario_refine_create`, `…_propose_create` are `x-vitrina-connector-excluded` (they run a model on the workspace's budget); Vitrina runs them after the request is filed, or an `sk_` key does.
 - **`sk_` key only** (`ai_agents:simulate`): `ai_agent_simulate {ai_agent_id, user_message, use_draft?, channel?}`; REST `POST /ai-agents/:id/simulate {messages[], use_draft, channel?, max_steps≤8}`; scenario build/create/run and suite runs (`test-vitrina-agent`); Agent Coach `POST /ai-agents/:id/coach/run`; `coach_finding_investigate`.
 - Test bench sessions (ADR 0090): `POST /ai-agents/:id/test-sessions`; MCP read-only `ai_agents_test_sessions_list/_get` (`sk_`).
 
-## Not reachable from MCP (REST only; tier `interna`)
+## Not reachable from a connector (REST with an `sk_` key; tier `interna`)
 
-`GET /conversations/:id/agent-turn`, `GET /conversations/:id/agent-runs`, `POST /ai-agents/:id/coach/run`, `POST /copilot/explain`.
+`GET /conversations/:id/agent-runs`, `POST /ai-agents/:id/coach/run`, `POST /copilot/explain`. Reachable now: `GET /conversations/:id/agent-turn` = `call_operation conversation_agent_turn_list {params:{id}}`.

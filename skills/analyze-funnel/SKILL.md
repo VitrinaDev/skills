@@ -11,7 +11,7 @@ Vitrina records every step as its own object: a **conversation** (with `channel`
 
 Decide the window (insights take `window` 7d|30d|90d|calendar_month|custom with from/to) and the outcome the business counts as success (won lead, booked visit, attended, paid). Name the pipelines in play (`pipelines_list {include:"counts"}` → `stages_list {pipeline_id}`): a workspace often has a sales board and a support board, and the funnel is only the sales one.
 
-Done when: window, success outcome and pipeline ids are fixed.
+Done when: window, success outcome and pipeline ids are fixed. The analysis is read-only; fixes to the board or routing are listed at the end of `references/funnel-surface.md` with the pack each needs.
 
 ## Step 2 — Top of funnel: where people come from
 

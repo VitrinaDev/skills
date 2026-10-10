@@ -9,13 +9,13 @@ Breadth first: this skill audits many conversations to find patterns and assigns
 
 Read on demand:
 - [`references/playbook.md`](references/playbook.md) — the tools to call with their inputs, the symptom → cause → owner table, and the filing tools. **Read before Step 2.**
-- No Vitrina tools loaded, or unsure which credential this is? Run `improve-vitrina-agent`'s connect reference. A connector (Claude chat, or Claude Code signed in through Vitrina) covers most of the audit; filing a change request needs its «Agentes de IA» pack. An `sk_` key with the scopes listed there adds cost, latency and worker-failure reads.
+- No Vitrina tools loaded, or unsure which credential this is? Run `improve-vitrina-agent`'s connect reference. A connector (Claude chat, or Claude Code signed in through Vitrina) covers most of the audit; filing a change request needs its «Agentes de IA» pack. An `sk_` key with the scopes listed there adds latency, worker-failure and `agent-runs` reads. No credential returns cost, token or model figures: never report them.
 
 Budget: an audit reads summaries first and threads second. Default sample is **10–15 conversations** read in full (every handoff nobody answered, the reviews' worst outcomes, a few resolved ones); say how many you read and offer to go deeper. Keep list calls small — `coach_reviews_list limit:50`, `coach_findings_list status:"active"`, `coach_proposals_list limit:30` — and do not fetch the agent's prompt (`ai_agents_get`) unless a finding needs a specific rule checked. A full-tenant read of 40+ threads costs ten times a normal audit.
 
 ## Step 1 — Frame the audit
 
-Agree the agent (`ai_agents_list`), the window (default the last 7 days; 30 for a monthly review), the channels, and the question behind the request ("why do people ask for a human", "are prices right", "is it slow"). Pull the numbers first: `ai_agents_metrics_get {id, days}`, `insights_ai_agents_get`, `insights_csat_get`, `coach_stats`, `analytics_latency`, `analytics_cost`.
+Agree the agent (`ai_agents_list`), the window (default the last 7 days; 30 for a monthly review), the channels, and the question behind the request ("why do people ask for a human", "are prices right", "is it slow"). Pull the numbers first: `ai_agents_metrics_get {id, days}`, `insights_ai_agents_get`, `insights_csat_get`, `coach_stats`, `analytics_latency`.
 
 Done when: you can state the volume (conversations, AI-resolved vs. handed off, unresolved), and the two or three numbers that look wrong.
 
@@ -27,7 +27,7 @@ Done when: every active finding and every unreplayed failure is in your working 
 
 ## Step 3 — Sample and read conversations
 
-Choose the sample deliberately: every handoff and unresolved conversation in the window, every one the reviews flag, plus a random slice of resolved ones (`conversations_list {status, channel, limit, page}`; `search` for words like "humano", "no me sirve", "equivocado", "precio"). For each: `conversations_export {id, format:"json"}` (messages with `type`, `tool_calls`, tool results, reasoning rows, contact, attributes); for a turn that needs the exact prompt and tool list, REST `GET /conversations/:id/agent-turn` and `GET /conversations/:id/agent-runs`.
+Choose the sample deliberately: every handoff and unresolved conversation in the window, every one the reviews flag, plus a random slice of resolved ones (`conversations_list {status, channel, limit, page}`; `search` for words like "humano", "no me sirve", "equivocado", "precio"). For each: `conversations_export {id, format:"json"}` (messages with `type`, `tool_calls`, tool results, reasoning rows, contact, attributes); for a turn that needs the exact prompt and tool list, `call_operation conversation_agent_turn_list {params:{id}}` (a connector reaches it; it reproduces the current config), and with an `sk_` key `GET /conversations/:id/agent-runs` for the step trail.
 
 Read as an investigator: locate the first wrong reply, walk up to its reasoning and tool rows, and record the **evidence line** (message id, tool name, the result text).
 
@@ -55,7 +55,7 @@ Done when: contact-related causes are either in the workspace list (clean-up tas
 Write `analysis/AUDIT-<agent>-<date>.md`: numbers (Step 1), findings table (conversation, symptom, evidence, cause, owner), **workspace fixes** ranked by frequency × damage, **requests to Vitrina**, and open questions for the business owner. Then file:
 
 - Workspace fixes → run `improve-vitrina-agent` per fix (prompt changes go to the draft and are published only on the user's yes; skill and KB changes are confirmed before writing).
-- Behaviour the business requires and cannot configure → `ai_agents_change_request_create {id, verbatim, conversation_refs}` in the client's own words, up to 20 conversation refs; a request Vitrina resolves as a platform change ends in status `harness`.
+- Behaviour the business requires and cannot configure → `ai_agents_change_request_create {id, verbatim, conversation_refs}` (connector: `call_operation ai_agent_change_requests_create`, pack «Agentes de IA»; filing and reading are all a connector can do with change requests, the analysis steps are excluded) in the client's own words, up to 20 conversation refs; a request Vitrina resolves as a platform change ends in status `harness`.
 - Capability the catalogue lacks (tool, integration, channel, report) → `coach_escalate_to_vitrina {capability_key, title, description, category}` — emails Vitrina once per capability.
 - Evidence to preserve → `coach_correction_capture {conversation_id, title}`; handoff verdicts → `coach_handoff_feedback_submit {conversation_id, verdict}`.
 - Platform defects (errors, silences, delivery, duplicates) → a change request with the evidence lines plus a message to Vitrina support quoting the display ids.

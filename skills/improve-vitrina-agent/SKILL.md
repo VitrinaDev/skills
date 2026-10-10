@@ -11,13 +11,13 @@ Reference, read on demand:
 - [`references/connect.md`](references/connect.md) — the connector (OAuth, «Agentes de IA» pack) vs. an `sk_` key, how to tell which one this session has, how to connect or reconnect. **Read first if no Vitrina tools are loaded or a write is refused.**
 - [`references/harness.md`](references/harness.md) — what the runtime builds around the prompt: section order, skill gate, KB retrieval, tool catalog, platform notes, revision gates. **Read before blaming the prompt.**
 - [`references/surface.md`](references/surface.md) — every edit as a connector `call_operation` id and as an `sk_` tool, and the writes that bypass the draft. **Read before Step 4.**
-- [`references/forensics.md`](references/forensics.md) — how a turn is persisted (reasoning, tool_calls, tool results, reply rows), `GET /conversations/:id/agent-turn`, SQL recipes.
+- [`references/forensics.md`](references/forensics.md) — how a turn is persisted (reasoning, tool_calls, tool results, reply rows), the assembled prompt of a turn (`conversation_agent_turn_list`), SQL recipes.
 
 Mechanics that cost fresh sessions the most time:
 - A conversation thread: connector `call_operation conversation_messages_list {params:{id:"C-1234", order:"asc", limit:200}}`; `sk_` key `conversations_export {id, format:"json"}`. `tickets_messages_thread` takes a **ticket** id (`T-n`), never a conversation.
 - Read one agent with `ai_agents_get {id}`; the list tools answer with summaries and omit prompt and skill bodies (`skills_get` for a body). A tool result over the harness limit is saved to a file whose path is in the error: read that file instead of re-calling.
 - On a connector every write is `call_operation`; the exact ids are in `surface.md`. Pass `expected_version` (draft) / `expected_draft_version` (publish) from what you read so a concurrent edit is refused instead of overwritten.
-- With an `sk_` key, a whole prompt (60k+ chars) is safer through `scripts/mcp-call.mjs <tool> "$(cat args.json)"` (see `connect.md`); REST routes the catalogue lacks (`/conversations/:id/agent-turn`, `/agent-runs`) take the same Bearer key with `curl`.
+- With an `sk_` key, a whole prompt (60k+ chars) is safer through `scripts/mcp-call.mjs <tool> "$(cat args.json)"` (see `connect.md`); the one REST route the catalogue lacks (`/conversations/:id/agent-runs`) takes the same Bearer key with `curl`.
 - Model and reasoning effort are Vitrina's: never report, compare or propose changing the agent's model or provider to the user.
 
 ## Step 1 — Fix the target
@@ -34,7 +34,7 @@ Done when: you can say where in the config the behaviour was *supposed* to be go
 
 ## Step 3 — Forensics on the conversation
 
-Follow `references/forensics.md`. Minimum: the full message thread with `type`, `tool_calls` and tool results, and the reasoning rows; with an `sk_` key also the assembled prompt for the failing turn (`GET /conversations/:id/agent-turn`, REST only). On a connector, `call_operation conversation_ai_status_list {params:{id}}` explains a silent AI. Classify the failure:
+Follow `references/forensics.md`. Minimum: the full message thread with `type`, `tool_calls` and tool results, and the reasoning rows; also the assembled prompt for the failing turn (`call_operation conversation_agent_turn_list {params:{id}}` on a connector; no model is involved, it reproduces the *current* config). `call_operation conversation_ai_status_list {params:{id}}` explains a silent AI. If the AI is silent because the conversation is pinned to a human or gated, `conversation_ai_control_update {params:{id}, body:{keep_with_human:false}}` or `conversation_bot_gate_override_create {params:{id}, body:{enabled:true}}` switch that one conversation back (pack «Conversaciones»; it changes live behaviour for a real customer, so only with the user's yes). Classify the failure:
 
 | Symptom | Usual layer |
 |---|---|
@@ -56,14 +56,14 @@ Read `references/surface.md` for the exact call. Rules that keep the tenant safe
 - **Attach through the draft when you also publish:** a publish with non-null `draft_skill_ids` / `draft_kb_file_ids` *replaces* the live attachment set — include every currently attached id.
 - Platform-emitted text is English; the agent's prompt, skills and KB stay in the tenant's language (Spanish here). Principles over phrase bans; never hardcode a reply language.
 - **One rule, one truth, aligned everywhere.** Before editing, list every place the rule already lives (prompt sections, skill content, KB sections); change the layer that failed and align the others, or the agent will read two versions. Back every edited artifact up first.
-- **Platform-owned causes are filed, not prompted around.** A failing integration (`could not reach …`, HTTP 5xx), a silent turn after correct tool use, undelivered or duplicated messages, a handoff nobody received: file a change request with the evidence (conversation refs, the tool result text; connector `call_operation ai_agent_change_requests_create`, `sk_` `ai_agents_change_request_create`) and report the `SR-n` id; a missing tool or integration is `coach_escalate_to_vitrina` (`sk_` key) or a change request. A prompt rule for how the agent *talks* about a failure is still a fair workspace fix; the failure itself is not.
+- **Platform-owned causes are filed, not prompted around.** A failing integration (`could not reach …`, HTTP 5xx), a silent turn after correct tool use, undelivered or duplicated messages, a handoff nobody received: file a change request with the evidence (conversation refs, the tool result text; connector `call_operation ai_agent_change_requests_create`, `sk_` `ai_agents_change_request_create`) and report the `SR-n` id; a missing tool or integration is `coach_escalate_to_vitrina` (`sk_` key) or a change request. On a connector, change requests are **file and read only**: the analysis steps (ground, scenario, scenario refine, propose) spend model budget and are excluded, so file the request with the evidence and let Vitrina process it. A prompt rule for how the agent *talks* about a failure is still a fair workspace fix; the failure itself is not.
 
 Done when: every change the user approved is written in Vitrina (prompt changes published only on their yes, otherwise left in the draft and said so) and saved in `<slug>/agent-update-<date>/` (after/), with a README line per change and its evidence.
 
 ## Step 5 — Verify
 
 - **`sk_` key:** simulate the draft (`ai_agent_simulate {use_draft:true}` / `POST /:id/simulate`) with the failing customer messages verbatim before publishing; if the tenant has Agent Evals, run the suite (`ai_agents_scenario_suite_run`).
-- **Connector:** simulation and scenario runs are not available. Read `ai_agents_publish_gate_get` and the latest `ai_agents_scenario_runs_list` results, and ask the user to try the failing message on the draft in the agent's «Probar» tab in Vitrina (the test bench) before saying yes to publishing.
+- **Connector:** simulation and scenario runs spend model budget and are excluded. Read `ai_agents_publish_gate_get` and the latest `ai_agents_scenario_runs_list` results, and ask the user to try the failing message on the draft in the agent's «Probar» tab in Vitrina (the test bench) before saying yes to publishing.
 - **Both:** after publishing, watch the next real conversations (`conversations_list` + the thread) and confirm the new behaviour on at least one live turn.
 
 Done when: the original failing input produces the intended behaviour (simulation, test bench or scenario run) and, once published, in one live conversation; or you have told the user what is still unverified and how they check it.

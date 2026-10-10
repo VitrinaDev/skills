@@ -1,6 +1,6 @@
 # Agent Evals surface (ADR 0098)
 
-`sk_` key tools. A connector sees only `ai_agents_scenarios_list`, `ai_agents_scenario_runs_list`, `ai_agents_scenario_run_get`, `ai_agents_scenario_suites_list` and `ai_agents_publish_gate_get`; the scenario routes are `interna`, so `call_operation` cannot reach the rest.
+`sk_` key tools. Running anything spends model budget, so a connector sees only `ai_agents_scenarios_list`, `ai_agents_scenario_runs_list`, `ai_agents_scenario_run_get`, `ai_agents_scenario_suites_list` and `ai_agents_publish_gate_get`; the scenario routes are `interna` and the runs are model spend, so `call_operation` cannot reach the rest. A connector's change requests are file-and-read only (`ai_agent_change_requests_create`, `ai_agents_change_requests_list`).
 
 | Tool | Scope | Input |
 |---|---|---|
@@ -19,7 +19,7 @@
 | `ai_agents_scenario_suite_create` | write | `id` + `{name, kind: golden|nightly|exploratory|on_change, filter?:{families?, tags?, scenario_ids?}, policy?:{block_publish_on_hard_fail?, min_pass_rate?, …}, cron?}` |
 | `ai_agents_scenario_suite_update` / `_delete` | write | `suite_id`, `patch` |
 | `ai_agents_scenario_suite_run` | simulate | `id`, `suite_id`, `agent_version?`, `repeats?` → suite run |
-| `ai_agents_scenario_suite_runs_list` | read | `id`, `suite_id?`, `status?`, `trigger?` — each with `summary {n, passed, partial, failed, error, hard_fails, pass_rate, flaky, cost_usd, duration_ms}` and `delta` vs previous |
+| `ai_agents_scenario_suite_runs_list` | read | `id`, `suite_id?`, `status?`, `trigger?` — each with `summary {n, passed, partial, failed, error, hard_fails, pass_rate, flaky, duration_ms}` and `delta` vs previous |
 | `ai_agents_scenario_suite_run_get` | read | `id` (suite run) — plus one summary per scenario run |
 | `ai_agents_publish_gate_get` | read | `id` (agent) — `none|ready|blocked|stale|pending` from the enabled golden suite |
 | `ai_agent_simulate` | simulate | `ai_agent_id`, `user_message`, `use_draft?`, `channel?` — one turn, tools declared not executed |
