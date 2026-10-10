@@ -34,7 +34,7 @@ Fastest path for one conversation: `conversations_export {id, format:"json"}` �
 2. Compare the reply with the tool results — an amount, hour or name absent from every result and from the KB is a hallucination (the price gate should have blocked a bare amount; if it passed, the amount was "grounded" somewhere — find where).
 3. Count steps: ≥ 8 tool calls in one turn = step cap; the last pass is a no-tools synthesis.
 4. Check the prompt the turn saw (`agent-turn`): is the rule you expect actually in the prompt/skill content, or only in a KB doc the agent did not search?
-5. Check `latency_metric` (kind `agent_turn`, revision flags; `analytics_latency` over MCP) for the turn's latency and whether a timeout explains a degraded reply. A tenant-facing report says "a platform timeout", never which model or provider, and never a cost figure (none is exposed).
+5. Check `latency_metric` (kind `agent_turn`, revision flags; `analytics_latency` over MCP) for the turn's latency and whether a timeout explains a degraded reply. A tenant-facing report says "a platform timeout", never which model or provider, and never a cost figure (none is exposed). Vitrina staff can also read `model_usage` by SQL (recipe below) to see whether a provider swap or timeout explains it — internal only.
 6. Mejoras: `conversation_review` (`outcome resolved_by_ai|resolved_by_human|unresolved|abandoned|noise`, `handoff`, `summary`) and `agent_finding` already classify recent conversations — read them before re-deriving.
 
 ## SQL recipes (direct database access, read-only)
@@ -67,5 +67,11 @@ KB retrieval log (what the agent searched and how many chunks came back):
 ```sql
 select created_at, query_text, top_k, array_length(chunk_ids,1) as hits, latency_ms, conversation_id
 from kb_retrieval_log where tenant_id = '<tenant>' order by created_at desc limit 50;
+```
+
+Turn cost/latency (Vitrina staff only — model, provider and cost are internal and never go into a tenant-facing report):
+```sql
+select created_at, model, input_tokens, output_tokens, cost_usd, latency_ms, metadata->>'steps' steps, metadata->>'provider' provider
+from model_usage where conversation_id = '<uuid>' order by created_at;
 ```
 The recipes were run against prod on 2026-10-08.
