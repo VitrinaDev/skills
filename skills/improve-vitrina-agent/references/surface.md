@@ -37,7 +37,7 @@ An update changes **every agent attached to the skill**; `channel_overrides`, wh
 | Action | Connector | `sk_` MCP tool |
 |---|---|---|
 | List / text | `kb_files_list`, `kb_files_get_text {id}`, `agent_knowledge_list {agent_id}` | same |
-| Upload / replace a document | **Not over a connector** (`POST /kb-files` and `PUT /kb-files/{id}/content` are multipart). Hand the user the finished `.md` file to upload in Vitrina's «Base de conocimiento», or use an `sk_` key. | `kb_files_upload {filename, content, attach_to_agent_id?}`, `kb_files_replace {id, filename, content, expected_version?}` |
+| Upload / replace a document | `call_operation kb_files_create {body:{filename, content, content_encoding: utf8\|base64, content_type?, attach_to_agent_id?}}`; `call_operation kb_file_content_replace {params:{id}, body:{filename, content, content_encoding?, expected_version?}}` (JSON body; a frame over ~1 MB through MCP fails — split the document or use REST). Delete: `call_operation kb_file_delete {params:{id}}`. | `kb_files_upload {filename, content, attach_to_agent_id?}`, `kb_files_replace {id, filename, content, expected_version?}` |
 | Draft a document from a website | `call_operation kb_files_generate_from_url_create {body:{url, crawl?, max_pages ≤25?}}` → `{title, markdown}`; **returns, does not store** | same op via `call_operation` |
 | Attach an existing file | `call_operation ai_agent_knowledge_create {params:{id: <agent>}, body:{kb_file_id}}` | `agent_knowledge_attach {agent_id, kb_file_id}` |
 | Detach | `call_operation ai_agent_knowledge_delete {params:{id: <agent>, fileId}}` | `agent_knowledge_detach` |

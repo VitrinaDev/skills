@@ -10,7 +10,7 @@ Two homes for knowledge, chosen by how it is used:
 - **Knowledge-base document** — facts the agent looks up: prices, hours, addresses, policies, catalogue, FAQs. Retrieved by `search_knowledge_base` in ~500-token chunks, so **the chunk, not the document, is the unit**: a section must answer on its own.
 - **Skill** — a procedure the agent follows at a moment: how to book, how to handle a complaint, how to quote. Loaded whole by `load_skill` when its `description` matches the situation; numbered steps, rules, verbatim templates.
 
-A fact goes in a document; a sequence of actions goes in a skill; a fact the agent must always apply (tone, a hard limit) goes in the prompt via `improve-vitrina-agent`. Skills ≤ 20,000 chars; documents UTF-8 markdown preferred (≤ 25 MB). Calls per credential (connector with the «Agentes de IA» pack, or `sk_` key) are in `improve-vitrina-agent`'s [`references/surface.md`](../improve-vitrina-agent/references/surface.md); which credential this session has: its `connect.md`. On a connector a KB document cannot be uploaded or replaced (multipart): you write the file, the user uploads it in Vitrina.
+A fact goes in a document; a sequence of actions goes in a skill; a fact the agent must always apply (tone, a hard limit) goes in the prompt via `improve-vitrina-agent`. Skills ≤ 20,000 chars; documents UTF-8 markdown preferred (≤ 25 MB). Calls per credential (connector with the «Agentes de IA» pack, or `sk_` key) are in `improve-vitrina-agent`'s [`references/surface.md`](../improve-vitrina-agent/references/surface.md); which credential this session has: its `connect.md`. Through MCP keep one call under ~1 MB of content; split larger documents.
 
 ## Step 1 — Capture the fact, in the business's words
 
@@ -40,10 +40,10 @@ Both homes are **live the moment they are written**, on every agent attached. Sh
 
 - Skill, connector: `call_operation skill_replace {params:{id}, body:{content, description?, expected_version}}`, or `skills_create {body:{name, description, content}}` then `ai_agent_skills_create {params:{id: <agent>}, body:{skill_id}}`. `sk_` key: `skills_update` / `skills_create` + `agent_skills_attach`.
 - Document, `sk_` key: `kb_files_replace {id, filename, content, expected_version}` or `kb_files_upload {filename, content, attach_to_agent_id}`.
-- Document, connector: save the finished `.md` locally (or give it in the chat), and tell the user to upload it in Vitrina's «Base de conocimiento» — replace the existing file when one covers the topic, so its id and agent links stay. Once it exists, attach it with `call_operation ai_agent_knowledge_create {params:{id: <agent>}, body:{kb_file_id}}` if it is not attached yet. A website's content can be drafted with `call_operation kb_files_generate_from_url_create {body:{url}}` (returns markdown, stores nothing).
+- Document, connector: `call_operation kb_file_content_replace {params:{id}, body:{filename, content, content_encoding:"utf8", expected_version}}` when a file already covers the topic (its id and agent links stay), else `call_operation kb_files_create {body:{filename, content, content_encoding:"utf8", content_type:"text/markdown"}}`. Once it exists, attach it with `call_operation ai_agent_knowledge_create {params:{id: <agent>}, body:{kb_file_id}}` if it is not attached yet. A website's content can be drafted with `call_operation kb_files_generate_from_url_create {body:{url}}` (returns markdown, stores nothing).
 - Poll `kb_files_list` until `status: ingested` (seconds; `failed` → re-ingest: connector `call_operation kb_file_reingest_create {params:{id}}`, `sk_` `kb_files_reingest`).
 
-Done when: the user approved the change and the file shows `ingested` with `kb_files_get_text` returning your text, or the skill is attached to the agent; or, on a connector, the user has the file to upload and knows exactly where.
+Done when: the user approved the change and the file shows `ingested` with `kb_files_get_text` returning your text, or the skill is attached to the agent.
 
 ## Step 5 — Prove the agent answers from it
 
