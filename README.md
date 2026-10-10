@@ -11,9 +11,9 @@ Two steps: install the skills, then connect Vitrina (next section).
 <details open>
 <summary><strong>Claude chat (claude.ai, Claude Desktop)</strong></summary>
 
-On a paid plan: **Customize → Plugins → Add marketplace** → `VitrinaDev/skills`, then install **vitrina-skills** ([how plugins work in Claude](https://support.claude.com/en/articles/13837440)). Team and Enterprise owners can publish the plugin to the whole organization.
+On a paid plan: **Customize → Plugins → Add marketplace** → `VitrinaDev/skills`, then install **vitrina-skills** ([how plugins work in Claude](https://support.claude.com/en/articles/13837440)). Turn on **Sync automatically** for the marketplace to get new versions. Type `/` in a chat to see the skills. On Team and Enterprise, an owner may have to allow user-added marketplaces (Organization settings → Plugins & skills).
 
-If the marketplace is not accepted there, upload the skills one by one: download a skill folder from this repository as a `.zip` (one folder under `skills/`, e.g. `improve-vitrina-agent`), then **Customize → Skills → Upload a skill**. Skills need **Settings → Capabilities → Code execution** turned on.
+If your organization blocks marketplaces, upload the skills one by one: download a ready zip from the [latest release](https://github.com/VitrinaDev/skills/releases/latest) (for example [`improve-vitrina-agent.zip`](https://github.com/VitrinaDev/skills/releases/latest/download/improve-vitrina-agent.zip)), then **Customize → Skills → + → Upload a skill**. Skills need **Settings → Capabilities → Code execution** turned on. Uploaded skills do not update themselves: download the zip again after a new release.
 
 </details>
 
