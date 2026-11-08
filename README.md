@@ -77,6 +77,7 @@ Reading is included for every connection. Writing is granted per area, with the 
 | «Campañas y plantillas» | WhatsApp templates (incl. header media), flows, campaigns, audiences, email templates; sending, scheduling and test-sends also need «Mensajes a clientes» | `vitrina-campaigns` |
 | «Centro de ayuda» | help centers, sections, articles, translations, media | |
 | «Configuración del inbox» | macros, custom fields and attributes, SLAs, triggers, routing and assignment rules, pipelines and stages | `vitrina-contacts` |
+| «Finanzas» | classify documents and movements, confirm «Por resolver», rules and the plan de cuentas (rules and accounts also need an admin role) | `vitrina-finanzas` |
 | «Catálogo» | products, marketplace sync | |
 
 Some permissions inside a pack are optional and only granted when your role holds them (for example the clinic agenda inside «Agenda»). A pack missing from your connection is never an error in the skill: it says which pack to add.
@@ -105,6 +106,7 @@ Run `/vitrina` when unsure which one fits. The others are **model-invoked**: the
 - **[vitrina-contacts](./skills/vitrina-contacts/SKILL.md)** — "¿Tengo contactos duplicados?", "importa esta planilla", "que el bot no le responda a Juan". Directory hygiene: dedupe and merge (with confirmation), CSV import with a dry-run plan, RUT, consent and opt-outs, tags and attributes, who is marketable.
 - **[vitrina-campaigns](./skills/vitrina-campaigns/SKILL.md)** — "Mándale una promo a todos los pacientes", "por qué está pendiente la plantilla", "qué pasó con el recontacto". Templates and Meta approval, audiences and consent, test-send → schedule → send, follow-ups, recontacto, the approval queue; every send needs your explicit go.
 - **[clinic-agenda](./skills/clinic-agenda/SKILL.md)** — "¿Hay horas de TTM la próxima semana?", "ocupación por profesional", "lista de espera". The agenda from the vendor's side: hours, free slots, occupancy, bookings through the engine, waitlist, no-shows, sync health. Clinics only; counts and initials, not names.
+- **[vitrina-finanzas](./skills/vitrina-finanzas/SKILL.md)** — "¿Qué me falta por clasificar en octubre?", "crea una regla para este proveedor", "ordena mi plan de cuentas". Reads Finanzas (classified share, what is left without an account, duplicate and unused accounts, rules), proposes each classification with a reason, previews every rule before applying it, and writes only what you approved.
 - **[vitrina-api-integrator](./skills/vitrina-api-integrator/SKILL.md)** — "Quiero crear contactos desde mi CRM y recibir un webhook cuando se agende". Discover and call any published operation, mint the narrowest key, verify webhook signatures, idempotency, rate limits, pagination, the SDK.
 
 ## Contributing
