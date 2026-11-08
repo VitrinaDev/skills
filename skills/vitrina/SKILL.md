@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Vitrina — which skill, and are you connected?
 
-Eleven skills, one per question:
+Twelve skills, one per question:
 
 | You want to… | Run |
 |---|---|
@@ -20,6 +20,7 @@ Eleven skills, one per question:
 | Clean the contact directory: duplicates, import, consent, RUT, tags, who is marketable | `vitrina-contacts` |
 | Send something to many people: templates, audiences, campaigns, follow-ups, recontacto | `vitrina-campaigns` |
 | The clinic's agenda: free slots, occupancy, bookings, waitlist, no-shows, sync | `clinic-agenda` |
+| Review Finanzas: plan de cuentas, what is unclassified, classification rules, duplicate or unused accounts | `vitrina-finanzas` |
 | Connect your own system: operations, keys, webhooks, SDK | `vitrina-api-integrator` |
 
 Before any of them, check the connection once:
@@ -37,6 +38,7 @@ Which pack each skill writes with (reads need none; the operation ids are in eac
 | `vitrina-contacts` | «Contactos»; «Configuración del inbox» for custom attributes; «Conversaciones» for tags on conversations |
 | `vitrina-campaigns` | «Campañas y plantillas» (templates, flows, audiences, campaigns), «Seguimientos» (follow-ups, recontacto); **plus «Mensajes a clientes» for any send, schedule or test-send** |
 | `clinic-agenda` | «Agenda» (clinic agenda needs `clinic:write` in the member's role); **plus «Mensajes a clientes» to cancel an appointment** |
+| `vitrina-finanzas` | «Finanzas» (rules and accounts also need an admin role in Vitrina; the Contador seat is read-only) |
 
 **To add a pack to an existing connection (no reconnect):** Vitrina → **Configuración → Conectar tu IA (MCP) → Apps conectadas → «Editar permisos»**. Only the member who connected the app can add permissions, and a pack only carries what that member's role holds. An agent that cannot do this for the user tells them these exact clicks; it takes a minute.
 

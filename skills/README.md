@@ -18,4 +18,5 @@ One folder per skill.
 - **[vitrina-contacts](./vitrina-contacts/SKILL.md)** — Search, dedupe and merge, CSV import with a dry-run plan, RUT and address, consent and opt-outs, bot off for a person, tags and attributes, marketable count.
 - **[vitrina-campaigns](./vitrina-campaigns/SKILL.md)** — WhatsApp templates and Meta approval, audiences and consent, campaigns (test-send, schedule, send, stats), follow-ups and recontacto, the approval queue — nothing sent without a go.
 - **[clinic-agenda](./clinic-agenda/SKILL.md)** — Professionals and hours, free slots and occupancy, bookings through the vendor engine, waitlist, no-shows, reminders, Dentalink/Medilink sync (healthcare workspaces).
+- **[vitrina-finanzas](./vitrina-finanzas/SKILL.md)** — Review the plan de cuentas, classify what is left unclassified, create rules for repeating suppliers, tidy duplicate or unused accounts: proposals with a reason, a preview, and nothing written without your go.
 - **[vitrina-api-integrator](./vitrina-api-integrator/SKILL.md)** — For developers: find and call any published operation, keys and scopes, webhooks with signatures, idempotency, rate limits, pagination, the SDK.
