@@ -22,12 +22,12 @@ Every call goes through `call_operation {operation_id, ...params}`. Amounts are 
 Done when: you know you can read, and whether you can write.
 
 ## Step 1: Frame the month (read only)
-- Month: the one the user names, else the one in the pasted prompt, else the last closed month (`finanzas_accounts_review_get` with no `month` picks it).
-- `finanzas_accounts_review_get {month}` gives `classified_pct`, `unclassified` (count, total, by kind, `with_proposal`), `unclassified_income`, and `findings` (`unclassified`, `duplicate_import` pairs, `unused` account ids).
+- Month: the one the user names, else the one in the pasted prompt, else the last closed month (`finanzas_accounts_review_list` with no `month` picks it).
+- `finanzas_accounts_review_list {month}` gives `classified_pct`, `unclassified` (count, total, by kind, `with_proposal`), `unclassified_income`, and `findings` (`unclassified`, `duplicate_import` pairs, `unused` account ids).
 - `finanzas_accounts_list {usage_month: month}` gives the tree with each account's `usage` (total, count, last used, used in 6 months).
 - `finanzas_rules_list` gives the active rules (a rule names a contraparte and/or a text, an amount range, a direction, a document kind, and the account).
 
-If `finanzas_accounts_review_get` is not available (an older server), fall back to `finanzas_resultado_list {from: month, to: month}` (rows `egresos_sin_clasificar`, `ingresos_sin_clasificar`, per-account rows) and compute the rest yourself.
+If `finanzas_accounts_review_list` is not available (an older server), fall back to `finanzas_resultado_list {from: month, to: month}` (rows `egresos_sin_clasificar`, `ingresos_sin_clasificar`, per-account rows) and compute the rest yourself.
 
 Tell the user the answer in one line before anything else, e.g. «Octubre: 96 % de los egresos tiene cuenta. Quedan 7 sin cuenta ($1.590.984), hay 2 cuentas importadas repetidas y 31 sin uso.» If nothing is pending, say the plan is in order and stop unless they asked for more.
 
@@ -59,7 +59,7 @@ Done when: every proposal has a reason the user can check, and the user answered
 3. **The rest:** `finanzas_classifications_bulk_create {items:[{type, id}], account_name, period?}` (`period` = `YYYY-MM` for the accrual month; omit it to keep each item's own month), where one call = one account, ≤ 500 items, one `Idempotency-Key` per call. It is all or nothing: on 409/422, read `details.reason` (`movement_linked`, `movement_to_income`, `account_ambiguous` with `details.candidates`, `sum_mismatch`), fix or ask, and retry only the failed call. For a split, or one item that changes account, use `finanzas_classification_replace`.
 4. **Accounts:** `finanzas_account_update {id, behavior?|no_document?}`, `finanzas_account_archive_create {id}` (one explicit yes per account, or per listed group), `finanzas_accounts_create` only when the user asks for a new account.
 
-Then re-read `finanzas_accounts_review_get {month}` and report: the new percentage, what changed (counts per account, rules created and what they took), and how to undo each part.
+Then re-read `finanzas_accounts_review_list {month}` and report: the new percentage, what changed (counts per account, rules created and what they took), and how to undo each part.
 
 Done when: the re-read matches what you reported.
 
@@ -73,5 +73,5 @@ Done when: the re-read matches what you reported.
 - **Language:** answer in the user's language (Spanish, tú, short). Call accounts by their names in the plan. Imported accounts are «importadas»: never name the system they were imported from. No accounting jargon the screens don't use (no «asiento», «debe/haber»).
 
 ## Operations used
-Reads: `finanzas_accounts_review_get`, `finanzas_accounts_list`, `finanzas_resultado_list`, `finanzas_resultado_items_list`, `finanzas_cases_list`, `finanzas_case_get`, `finanzas_rules_list`, `finanzas_rule_get`, `finanzas_rule_pending_list`, `finanzas_contrapartes_list`, `finanzas_contraparte_timeline_list`, `finanzas_classifications_list`, `finanzas_classification_get`, `finanzas_automatic_actions_list`.
+Reads: `finanzas_accounts_review_list`, `finanzas_accounts_list`, `finanzas_resultado_list`, `finanzas_resultado_items_list`, `finanzas_cases_list`, `finanzas_case_get`, `finanzas_rules_list`, `finanzas_rule_get`, `finanzas_rule_pending_list`, `finanzas_contrapartes_list`, `finanzas_contraparte_timeline_list`, `finanzas_classifications_list`, `finanzas_classification_get`, `finanzas_automatic_actions_list`.
 Writes («Finanzas» pack): `finanzas_rules_create`, `finanzas_rule_apply_create`, `finanzas_rule_pause_create`, `finanzas_case_confirm_create`, `finanzas_case_confirm_edited_create`, `finanzas_classifications_bulk_create`, `finanzas_classification_replace`, `finanzas_classification_delete`, `finanzas_account_update`, `finanzas_account_archive_create`, `finanzas_account_restore_create`, `finanzas_accounts_create`, `finanzas_accounts_review_dismiss_create` (only when the user says a «duplicate» pair is not the same account).
